@@ -58,9 +58,9 @@
         <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT Pick & Place 3D Digital Twin" />
       </a>
       <br/>
-      <b><a href="examples/smt-pick-and-place">SMT Pick &amp; Place Line (3D + Blender)</a></b>
+      <b><a href="examples/smt-pick-and-place">SMT Pick &amp; Place Line (2.5D Warm-CAD SCADA)</a></b>
       <br/>
-      <sub>7-Station Line · Zero-Clipping Three.js Kinematics · Blender Script</sub>
+      <sub>7-Station 2.5D Twin · 12 Feeders &amp; 8-Zone Oven · Multi-Protocol</sub>
     </td>
   </tr>
 </table>

@@ -1,1024 +1,363 @@
-/**
- * =========================================================================
- * SMT 高速贴片机生产线 · 数字孪生 Web 引擎 (Three.js + TIA Twin Client)
- * 工业级双模式：离线真运动学自主仿真 + 西门子 S7/Modbus 实时网关驱动
- * 支持中英文双语即时无缝切换 (Bilingual i18n: English / 简体中文)
- * =========================================================================
- */
+(() => {
+  const state = {
+    running: true,
+    estop: false,
+    speed: 1,
+    xray: false,
+    cph: 43200,
+    totalCount: 2864,
+    feederIdx: 4,
+    axisX: 142.5,
+    axisY: -218.4,
+    axisZ: 12.4,
+    vacuum: -84.2,
+    tempPeak: 245.2,
+    phase: 0,
+    beltOffset: 0,
+    pcbs: [-11.5, -5.5, 0.5, 6.5, 11.5]
+  };
 
-// 0. 中英文国际化语言字典 (i18n Translation Dictionary)
-const I18N = {
-  zh: {
-    brandTitle: "SMT-PRO 5000 · 高速贴片机生产线数字孪生系统",
-    brandSubtitle: "SIEMENS S7 & MODBUS MULTI-PROTOCOL TWIN · VER 4.8",
-    statusRunning: "产线运行中 (NORMAL)",
-    statusPaused: "生产已暂停 (PAUSED)",
-    statusEStop: "产线紧急停机 (E-STOP)",
-    gwOffline: "模式: 离线自主仿真",
-    gwConnected: "网关已连通 (S7/MODBUS)",
-    batchLabel: "生产批次:",
-    tactLabel: "节拍:",
-    btnXRay: "🔍 外壳透视",
-    btnTags: "🏷️ 工位标注",
-    btnPause: "⏸️ 暂停生产",
-    btnResume: "▶️ 恢复生产",
-    btnEStop: "🛑 产线急停",
-    btnResetEStop: "🔄 复位急停",
-    panelMetricsTitle: "📊 综合生产效能",
-    panelMetricsBadge: "LIVE METRICS",
-    kpiCphLabel: "实时贴片速度 (CPH)",
-    kpiCphSub: "额定 45,000 CPH",
-    kpiYieldLabel: "综合良品率 (Yield)",
-    kpiYieldSub: "缺陷 3 / 误报 1",
-    kpiCountLabel: "今日生产总数",
-    kpiCountSub: "目标: 3,000 PCS",
-    kpiOeeLabel: "设备综合效率 (OEE)",
-    kpiOeeSub: "开动率 97.8%",
-    waveTitle: "实时贴装速度动态波形 (CPH)",
-    axisTitle: "🎯 贴片机核心运动轴坐标 (mm)",
-    axisXLabel: "X 轴贴装小车",
-    axisYLabel: "Y 轴双驱龙门梁",
-    visionTitle: "飞行视觉相机补偿 (Vision Alignment)",
-    feederTitle: "📦 飞达料站剩余元件监控 (Reels)",
-    feederBadge: "12 FEEDERS",
-    nozzleTitle: "💨 8 联装真空吸嘴矩阵 (kPa)",
-    ovenTitle: "🔥 8 温区热风回流焊实时温控",
-    viewLabel: "视角预设:",
-    viewOverview: "产线全景",
-    viewSmt: "贴片机特写",
-    viewFeeder: "飞达料站",
-    viewOven: "回流焊透视",
-    viewAoi: "AOI 光学检测",
-    viewPcb: "跟随当前 PCB",
-    btnDefect: "⚠️ 模拟缺陷报警",
-    btnSpeed: "⏩ 速度: ",
-    logReady: "SYSTEM READY · 贴片机龙门双驱同步对准完成，激光视觉就绪",
-    tagStations: ["01 上板机", "02 锡膏印刷机", "03 接驳台", "04 高速贴片机", "05 回流焊接炉", "06 AOI 光学检测", "07 自动下板机"],
-    zoneNames: ['预热1', '预热2', '恒温1', '恒温2', '回流1', '峰值2', '降温1', '冷却2'],
-    langBtn: "🌐 English"
-  },
-  en: {
-    brandTitle: "SMT-PRO 5000 · High-Speed Pick & Place Digital Twin",
-    brandSubtitle: "SIEMENS S7 & MODBUS MULTI-PROTOCOL TWIN · VER 4.8",
-    statusRunning: "Line Running (NORMAL)",
-    statusPaused: "Production Paused (PAUSED)",
-    statusEStop: "Emergency Stop (E-STOP)",
-    gwOffline: "Mode: Offline Simulation",
-    gwConnected: "Gateway Linked (S7/MODBUS)",
-    batchLabel: "Batch ID:",
-    tactLabel: "Tact:",
-    btnXRay: "🔍 X-Ray Shell",
-    btnTags: "🏷️ 3D Tags",
-    btnPause: "⏸️ Pause",
-    btnResume: "▶️ Resume",
-    btnEStop: "🛑 E-Stop",
-    btnResetEStop: "🔄 Reset E-Stop",
-    panelMetricsTitle: "📊 Production Performance",
-    panelMetricsBadge: "LIVE METRICS",
-    kpiCphLabel: "Placement Speed (CPH)",
-    kpiCphSub: "Rated: 45,000 CPH",
-    kpiYieldLabel: "Overall Yield Rate",
-    kpiYieldSub: "Defects 3 / False 1",
-    kpiCountLabel: "Today's Output",
-    kpiCountSub: "Target: 3,000 PCS",
-    kpiOeeLabel: "Overall Efficiency (OEE)",
-    kpiOeeSub: "Availability: 97.8%",
-    waveTitle: "Real-time CPH Waveform",
-    axisTitle: "🎯 Core Axis Coordinates (mm)",
-    axisXLabel: "X Placement Head",
-    axisYLabel: "Y Dual-Drive Gantry",
-    visionTitle: "Flying Vision Alignment Compensation",
-    feederTitle: "📦 Feeder Bay Component Stock (Reels)",
-    feederBadge: "12 FEEDERS",
-    nozzleTitle: "💨 8-Nozzle Vacuum Array (kPa)",
-    ovenTitle: "🔥 8-Zone Reflow Oven Temperatures",
-    viewLabel: "Camera View:",
-    viewOverview: "Overview",
-    viewSmt: "SMT Mounter",
-    viewFeeder: "Feeder Bay",
-    viewOven: "Reflow X-Ray",
-    viewAoi: "AOI Camera",
-    viewPcb: "Follow PCB",
-    btnDefect: "⚠️ Sim Defect",
-    btnSpeed: "⏩ Speed: ",
-    logReady: "SYSTEM READY · Dual-drive gantry aligned, laser vision ready",
-    tagStations: ["01 Loader", "02 Stencil Printer", "03 Buffer", "04 SMT Mounter", "05 Reflow Oven", "06 AOI Camera", "07 Unloader"],
-    zoneNames: ['Preheat 1', 'Preheat 2', 'Soak 1', 'Soak 2', 'Reflow 1', 'Peak 2', 'Cool 1', 'Cool 2'],
-    langBtn: "🌐 简体中文"
-  }
-};
+  const devices = [
+    { id: 'PLC-01', name: '西门子 S7-1500 贴装主控', proto: 's7', endpoint: '192.168.0.1 (R0/S1)', pollMs: 100, active: true },
+    { id: 'OVEN-01', name: '8 温区回流焊温控仪', proto: 'modbus-rtu', endpoint: 'COM4 @ 115200', pollMs: 200, active: true },
+    { id: 'AOI-01', name: 'AOI 光学检测主机', proto: 'tcp-raw', endpoint: '192.168.0.35:9000', pollMs: 50, active: true },
+    { id: 'FEED-01', name: '智能飞达总线控制器', proto: 'modbus-tcp', endpoint: '192.168.0.22:502', pollMs: 100, active: false }
+  ];
 
-let currentLang = 'zh';
+  const tagsMeta = [
+    { id: 'cmd.start', dev: 'PLC-01', addr: 'DB1.DBX0.0', type: 'bool', access: 'rw', desc: '产线启动命令' },
+    { id: 'cmd.stop', dev: 'PLC-01', addr: 'DB1.DBX0.1', type: 'bool', access: 'rw', desc: '产线停止命令' },
+    { id: 'cmd.estop', dev: 'PLC-01', addr: 'DB1.DBX0.3', type: 'bool', access: 'rw', desc: '安全急停信号' },
+    { id: 'sens.infeed_pe', dev: 'PLC-01', addr: 'DB1.DBX1.0', type: 'bool', access: 'w', desc: '进板光电检测' },
+    { id: 'sens.vision_ok', dev: 'AOI-01', addr: 'TCP:ALIGN_OK', type: 'bool', access: 'w', desc: '飞行视觉对准合格' },
+    { id: 'sens.aoi_result', dev: 'AOI-01', addr: 'TCP:AOI_PASS', type: 'bool', access: 'w', desc: 'AOI 光学检测判定' },
+    { id: 'smt.feeder_index', dev: 'FEED-01', addr: '40001 (HR0)', type: 'int16', access: 'r', desc: '当前取料飞达站号' },
+    { id: 'smt.axis_x', dev: 'PLC-01', addr: 'DB1.DBD4', type: 'real', access: 'r', desc: 'X 轴贴装小车坐标 (mm)' },
+    { id: 'smt.axis_y', dev: 'PLC-01', addr: 'DB1.DBD8', type: 'real', access: 'r', desc: 'Y 轴龙门梁坐标 (mm)' },
+    { id: 'smt.axis_z', dev: 'PLC-01', addr: 'DB1.DBD12', type: 'real', access: 'r', desc: 'Z 轴吸嘴行程 (mm)' },
+    { id: 'smt.vacuum_kpa', dev: 'PLC-01', addr: 'DB1.DBD16', type: 'real', access: 'r', desc: '工作吸嘴真空度 (kPa)' },
+    { id: 'smt.cph', dev: 'PLC-01', addr: 'DB1.DBD20', type: 'real', access: 'r', desc: '实时贴装速度 (CPH)' },
+    { id: 'smt.total_count', dev: 'PLC-01', addr: 'DB1.DBD28', type: 'int32', access: 'r', desc: '今日生产总数 (PCS)' },
+    { id: 'smt.reflow_temp_peak', dev: 'OVEN-01', addr: '30006 (IR6)', type: 'real', access: 'r', desc: '回流焊第 6 峰值温区 (°C)' }
+  ];
 
-// 1. 初始化 WebGL 视口与管线
-const container = document.getElementById('webgl-container');
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0a0f18);
-scene.fog = new THREE.FogExp2(0x0a0f18, 0.015);
+  const feeders = [
+    { slot: '#01', comp: '0402 C', qty: 3400, max: 5000 },
+    { slot: '#02', comp: '0603 R', qty: 2900, max: 5000 },
+    { slot: '#03', comp: '0805 C', qty: 1800, max: 5000 },
+    { slot: '#04', comp: 'QFP-48', qty: 420, max: 1000 },
+    { slot: '#05', comp: 'BGA-144', qty: 210, max: 1000 },
+    { slot: '#06', comp: 'SOT-23', qty: 890, max: 3000 }
+  ];
 
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 150);
-camera.position.set(2, 10, 18);
+  const ovenZones = [
+    { z: '预热 1', temp: 148 }, { z: '预热 2', temp: 162 },
+    { z: '恒温 3', temp: 175 }, { z: '恒温 4', temp: 185 },
+    { z: '回流 5', temp: 218 }, { z: '峰值 6', temp: 245 },
+    { z: '冷却 7', temp: 165 }, { z: '出料 8', temp: 85 }
+  ];
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, powerPreference: "high-performance" });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.15;
-container.appendChild(renderer.domElement);
+  // Rail view switch
+  document.querySelectorAll('.rail-btn[data-view]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.rail-btn[data-view]').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.view-pane').forEach((p) => p.classList.remove('active'));
+      document.getElementById(`view-${btn.dataset.view}`).classList.add('active');
+    });
+  });
 
-const controls = new THREE.OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.06;
-controls.maxPolarAngle = Math.PI / 2 - 0.03;
-controls.minDistance = 3;
-controls.maxDistance = 55;
-controls.target.set(1.0, 2.5, 0);
+  // Controls
+  document.getElementById('btnStart').addEventListener('click', () => { if (!state.estop) state.running = true; });
+  document.getElementById('btnStop').addEventListener('click', () => { state.running = false; });
+  document.getElementById('btnReset').addEventListener('click', () => { state.estop = false; });
+  document.getElementById('btnEstop').addEventListener('click', () => { state.estop = true; state.running = false; });
+  document.getElementById('btnSpeed').addEventListener('click', (e) => {
+    state.speed = state.speed === 1 ? 2 : 1;
+    e.currentTarget.textContent = `${state.speed}.0x`;
+  });
+  document.getElementById('btnXray').addEventListener('click', (e) => {
+    state.xray = !state.xray;
+    e.currentTarget.classList.toggle('active-toggle', state.xray);
+  });
 
-// 2. 工业光照环境
-const ambientLight = new THREE.AmbientLight(0x94a3b8, 0.75);
-scene.add(ambientLight);
+  // Modal
+  const modal = document.getElementById('connModal');
+  document.getElementById('btnOpenConn').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('modeOnline').addEventListener('click', () => modal.classList.add('open'));
+  document.getElementById('modeOffline').addEventListener('click', () => {
+    document.getElementById('modeOffline').classList.add('active');
+    document.getElementById('modeOnline').classList.remove('active');
+    document.getElementById('connDot').className = 'status-dot';
+    document.getElementById('connText').textContent = '离线自主仿真 · 100 ms';
+  });
+  document.getElementById('btnCloseModal').addEventListener('click', () => modal.classList.remove('open'));
+  document.getElementById('btnConfirmConn').addEventListener('click', () => {
+    const proto = document.getElementById('connProtocol').value;
+    const ep = document.getElementById('connEndpoint').value.trim() || '192.168.0.1';
+    const poll = document.getElementById('connPoll').value;
+    document.getElementById('modeOnline').classList.add('active');
+    document.getElementById('modeOffline').classList.remove('active');
+    document.getElementById('connDot').className = 'status-dot warn';
+    document.getElementById('connText').textContent = `网关待命 [${proto}] · ${ep} (${poll} ms)`;
+    modal.classList.remove('open');
+  });
 
-const dirLight = new THREE.DirectionalLight(0xffffff, 1.3);
-dirLight.position.set(15, 25, 12);
-dirLight.castShadow = true;
-dirLight.shadow.mapSize.width = 2048;
-dirLight.shadow.mapSize.height = 2048;
-dirLight.shadow.camera.near = 0.5;
-dirLight.shadow.camera.far = 60;
-const d = 25;
-dirLight.shadow.camera.left = -d;
-dirLight.shadow.camera.right = d;
-dirLight.shadow.camera.top = d;
-dirLight.shadow.camera.bottom = -d;
-dirLight.shadow.bias = -0.0005;
-scene.add(dirLight);
-
-const blueFillLight = new THREE.DirectionalLight(0x38bdf8, 0.5);
-blueFillLight.position.set(-15, 12, -10);
-scene.add(blueFillLight);
-
-// 3. 材质库配置 (工业级 PBR)
-const MATS = {
-  floor: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.65, metalness: 0.2 }),
-  machineBodyDark: new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.45, metalness: 0.35 }),
-  machineBodyBlue: new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.35, metalness: 0.25 }),
-  machineWhite: new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.3, metalness: 0.2 }),
-  steel: new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.2, metalness: 0.9 }),
-  darkMetal: new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3, metalness: 0.85 }),
-  brass: new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.25, metalness: 0.9 }),
-  esdBelt: new THREE.MeshStandardMaterial({ color: 0x090d16, roughness: 0.85, metalness: 0.05 }),
-  acrylic: new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.32, roughness: 0.05, transmission: 0.7, thickness: 0.4 }),
-  safetyYellow: new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.4, metalness: 0.1 }),
-  pcbBoard: new THREE.MeshStandardMaterial({ color: 0x047857, roughness: 0.35, metalness: 0.2 }),
-  icChip: new THREE.MeshStandardMaterial({ color: 0x111827, roughness: 0.4, metalness: 0.4 }),
-  ledGreen: new THREE.MeshBasicMaterial({ color: 0x10b981 }),
-  ledYellow: new THREE.MeshBasicMaterial({ color: 0xfbbf24 }),
-  ledRed: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
-  ovenGlowPre: new THREE.MeshBasicMaterial({ color: 0xf59e0b }),
-  ovenGlowPeak: new THREE.MeshBasicMaterial({ color: 0xef4444 }),
-  aoiStrobe: new THREE.MeshBasicMaterial({ color: 0x38bdf8 })
-};
-
-// 4. 地面与网格
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(80, 40), MATS.floor);
-floor.rotation.x = -Math.PI / 2;
-floor.receiveShadow = true;
-scene.add(floor);
-
-const gridHelper = new THREE.GridHelper(70, 70, 0x38bdf8, 0x1e293b);
-gridHelper.position.y = 0.01;
-scene.add(gridHelper);
-
-/**
- * =========================================================================
- * 生产线物理基准参数（绝不穿模核心规范）
- * =========================================================================
- */
-const TRACK_Y = 2.40;       // 传送带轨顶基准高
-const TRACK_Z = 0.0;        // 导轨中心 Z 轴基准
-const PCB_WIDTH = 1.6;
-const PCB_LENGTH = 2.2;
-const PCB_THICKNESS = 0.06;
-
-function buildConveyorTracks() {
-  const group = new THREE.Group();
-  const railLength = 34;
-  const railGeo = new THREE.BoxGeometry(railLength, 0.14, 0.08);
-  
-  const railLeft = new THREE.Mesh(railGeo, MATS.darkMetal);
-  railLeft.position.set(1.0, TRACK_Y - 0.07, -PCB_WIDTH / 2 - 0.05);
-  railLeft.castShadow = true;
-  group.add(railLeft);
-
-  const railRight = new THREE.Mesh(railGeo, MATS.darkMetal);
-  railRight.position.set(1.0, TRACK_Y - 0.07, PCB_WIDTH / 2 + 0.05);
-  railRight.castShadow = true;
-  group.add(railRight);
-
-  const beltGeo = new THREE.BoxGeometry(railLength, 0.02, 0.06);
-  const beltL = new THREE.Mesh(beltGeo, MATS.esdBelt);
-  beltL.position.set(1.0, TRACK_Y - 0.01, -PCB_WIDTH / 2);
-  group.add(beltL);
-
-  const beltR = new THREE.Mesh(beltGeo, MATS.esdBelt);
-  beltR.position.set(1.0, TRACK_Y - 0.01, PCB_WIDTH / 2);
-  group.add(beltR);
-
-  for (let x = -15; x <= 17; x += 3.5) {
-    const legGeo = new THREE.CylinderGeometry(0.06, 0.08, TRACK_Y - 0.14, 16);
-    const legL = new THREE.Mesh(legGeo, MATS.darkMetal);
-    legL.position.set(x, (TRACK_Y - 0.14)/2, -PCB_WIDTH/2 - 0.05);
-    group.add(legL);
-
-    const legR = new THREE.Mesh(legGeo, MATS.darkMetal);
-    legR.position.set(x, (TRACK_Y - 0.14)/2, PCB_WIDTH/2 + 0.05);
-    group.add(legR);
-  }
-  return group;
-}
-scene.add(buildConveyorTracks());
-
-const shellMeshes = [];
-
-// 工位 1: 上板机
-function buildLoader(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, TRACK_Y - 0.2, 2.2), MATS.machineBodyDark);
-  base.position.set(0, (TRACK_Y - 0.2) / 2, 0);
-  base.castShadow = true;
-  group.add(base);
-
-  const tower = new THREE.Mesh(new THREE.BoxGeometry(0.6, 2.2, 1.8), MATS.machineBodyBlue);
-  tower.position.set(-0.5, TRACK_Y + 1.0, 0);
-  group.add(tower);
-  shellMeshes.push(tower);
-
-  for (let i = 0; i < 6; i++) {
-    const slot = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.04, 1.4), MATS.pcbBoard);
-    slot.position.set(0.1, TRACK_Y + 0.3 + i * 0.25, 0);
-    group.add(slot);
-  }
-  return group;
-}
-scene.add(buildLoader(-12.5));
-
-// 工位 2: 锡膏印刷机
-let printerSqueegee;
-function buildPrinter(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.6, 3.4, 2.8), MATS.machineBodyDark);
-  body.position.set(0, 1.7, 0);
-  group.add(body);
-  shellMeshes.push(body);
-
-  const win = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.2, 0.05), MATS.acrylic);
-  win.position.set(0, 2.2, 1.41);
-  group.add(win);
-
-  printerSqueegee = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 1.5), MATS.brass);
-  printerSqueegee.position.set(0, TRACK_Y + 0.3, 0);
-  group.add(printerSqueegee);
-  return group;
-}
-scene.add(buildPrinter(-8.5));
-
-// 工位 3: 缓冲接驳台
-function buildBuffer(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const baseL = new THREE.Mesh(new THREE.BoxGeometry(0.2, TRACK_Y - 0.2, 1.8), MATS.machineBodyDark);
-  baseL.position.set(-0.8, (TRACK_Y - 0.2)/2, 0);
-  group.add(baseL);
-  const baseR = new THREE.Mesh(new THREE.BoxGeometry(0.2, TRACK_Y - 0.2, 1.8), MATS.machineBodyDark);
-  baseR.position.set(0.8, (TRACK_Y - 0.2)/2, 0);
-  group.add(baseR);
-  return group;
-}
-scene.add(buildBuffer(-5.0));
-
-// 工位 4: 高速多功能贴片机
-let gantryY;
-let carriageX;
-let nozzleArray = [];
-let feederReels = [];
-let statusTowerLights = {};
-
-function buildPickAndPlace(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-
-  const base = new THREE.Mesh(new THREE.BoxGeometry(4.2, TRACK_Y - 0.1, 3.4), MATS.darkMetal);
-  base.position.set(0, (TRACK_Y - 0.1)/2, 0);
-  base.castShadow = true;
-  group.add(base);
-
-  const shell = new THREE.Mesh(new THREE.BoxGeometry(4.2, 2.0, 3.4), MATS.machineWhite);
-  shell.position.set(0, TRACK_Y + 1.0, 0);
-  group.add(shell);
-  shellMeshes.push(shell);
-
-  const frontGlass = new THREE.Mesh(new THREE.BoxGeometry(3.6, 1.3, 0.06), MATS.acrylic);
-  frontGlass.position.set(0, TRACK_Y + 1.0, 1.72);
-  group.add(frontGlass);
-
-  // 12 站位飞达料站
-  const feederBase = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.3, 0.8), MATS.darkMetal);
-  feederBase.position.set(0, TRACK_Y - 0.1, 1.35);
-  group.add(feederBase);
-
-  for (let f = 0; f < 12; f++) {
-    const fx = -1.45 + f * 0.26;
-    const fz = 1.45;
-    const reel = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.24, 0.04, 24), MATS.machineWhite);
-    reel.rotation.x = Math.PI / 2;
-    reel.position.set(fx, TRACK_Y + 0.35, fz + 0.2);
-    group.add(reel);
-    feederReels.push(reel);
+  // Render Process & Device/Tag Views
+  function renderProcess() {
+    document.getElementById('feederRows').innerHTML = feeders
+      .map((f) => `<div class="bar-row">
+        <span class="mono">${f.slot}</span><span>${f.comp}</span>
+        <div class="bar-track"><div class="bar-fill" style="width:${Math.round((f.qty / f.max) * 100)}%"></div></div>
+        <span class="mono">${f.qty}</span>
+      </div>`).join('');
+    document.getElementById('ovenRows').innerHTML = ovenZones
+      .map((o) => `<div class="bar-row">
+        <span>${o.z}</span><span class="mono">${o.temp} °C</span>
+        <div class="bar-track"><div class="bar-fill hot" style="width:${Math.round((o.temp / 260) * 100)}%"></div></div>
+        <span class="mono" style="color:var(--ok);">OK</span>
+      </div>`).join('');
   }
 
-  // Y 轴双驱龙门横梁
-  gantryY = new THREE.Group();
-  gantryY.position.set(0, TRACK_Y + 1.6, 0);
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(3.7, 0.22, 0.35), MATS.darkMetal);
-  beam.castShadow = true;
-  gantryY.add(beam);
-
-  // X 轴高速小车
-  carriageX = new THREE.Group();
-  carriageX.position.set(0, 0, 0);
-  const carriageBody = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.38, 0.45), MATS.steel);
-  carriageBody.position.y = -0.15;
-  carriageBody.castShadow = true;
-  carriageX.add(carriageBody);
-
-  // 8 联装真空吸嘴矩阵
-  for (let n = 0; n < 8; n++) {
-    const nx = -0.30 + n * 0.085;
-    const nzGroup = new THREE.Group();
-    nzGroup.position.set(nx, -0.28, 0);
-
-    const collet = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.18, 16), MATS.brass);
-    collet.position.y = -0.05;
-    nzGroup.add(collet);
-
-    const tip = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.12, 16), MATS.steel);
-    tip.position.y = -0.18;
-    nzGroup.add(tip);
-
-    carriageX.add(nzGroup);
-    nozzleArray.push(nzGroup);
+  function getTagVal(id) {
+    if (id === 'smt.axis_x') return state.axisX.toFixed(2);
+    if (id === 'smt.axis_y') return state.axisY.toFixed(2);
+    if (id === 'smt.axis_z') return state.axisZ.toFixed(2);
+    if (id === 'smt.vacuum_kpa') return state.vacuum.toFixed(1);
+    if (id === 'smt.cph') return String(Math.round(state.cph));
+    if (id === 'smt.total_count') return String(state.totalCount);
+    if (id === 'smt.reflow_temp_peak') return state.tempPeak.toFixed(1);
+    if (id === 'smt.feeder_index') return String(state.feederIdx);
+    return state.running && !state.estop ? '1' : '0';
   }
 
-  gantryY.add(carriageX);
-  group.add(gantryY);
-
-  // 顶部三色声光报警塔
-  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.6), MATS.steel);
-  pole.position.set(-1.8, TRACK_Y + 2.3, -1.3);
-  group.add(pole);
-
-  statusTowerLights.red = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.09, 16), MATS.darkMetal);
-  statusTowerLights.red.position.set(-1.8, TRACK_Y + 2.65, -1.3);
-  group.add(statusTowerLights.red);
-
-  statusTowerLights.yellow = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.09, 16), MATS.darkMetal);
-  statusTowerLights.yellow.position.set(-1.8, TRACK_Y + 2.75, -1.3);
-  group.add(statusTowerLights.yellow);
-
-  statusTowerLights.green = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.09, 16), MATS.ledGreen);
-  statusTowerLights.green.position.set(-1.8, TRACK_Y + 2.85, -1.3);
-  group.add(statusTowerLights.green);
-
-  return group;
-}
-scene.add(buildPickAndPlace(0.0));
-
-// 工位 5: 8温区回流焊炉
-const ovenZoneMeshes = [];
-function buildReflowOven(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const ovenLength = 9.2;
-
-  const lowerBody = new THREE.Mesh(new THREE.BoxGeometry(ovenLength, TRACK_Y - 0.1, 2.6), MATS.machineBodyDark);
-  lowerBody.position.set(0, (TRACK_Y - 0.1)/2, 0);
-  group.add(lowerBody);
-
-  const upperHood = new THREE.Mesh(new THREE.BoxGeometry(ovenLength, 1.4, 2.6), MATS.machineBodyBlue);
-  upperHood.position.set(0, TRACK_Y + 0.9, 0);
-  group.add(upperHood);
-  shellMeshes.push(upperHood);
-
-  for (let z = 0; z < 8; z++) {
-    const zx = -3.8 + z * 1.08;
-    const isPeak = (z >= 4 && z <= 6);
-    const zMat = isPeak ? MATS.ovenGlowPeak : MATS.ovenGlowPre;
-
-    const heatBox = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.12, 1.8), zMat);
-    heatBox.position.set(zx, TRACK_Y + 0.45, 0);
-    group.add(heatBox);
-    ovenZoneMeshes.push(heatBox);
-
-    const win = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.04), MATS.acrylic);
-    win.position.set(zx, TRACK_Y + 0.9, 1.32);
-    group.add(win);
-  }
-  return group;
-}
-scene.add(buildReflowOven(7.0));
-
-// 工位 6: AOI 检测
-let aoiLightDome;
-function buildAOI(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 3.2, 2.6), MATS.machineBodyDark);
-  body.position.set(0, 1.6, 0);
-  group.add(body);
-  shellMeshes.push(body);
-
-  aoiLightDome = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.35, 0.25, 24), MATS.aoiStrobe);
-  aoiLightDome.position.set(0, TRACK_Y + 0.45, 0);
-  group.add(aoiLightDome);
-  return group;
-}
-scene.add(buildAOI(13.5));
-
-// 工位 7: 下板收料
-function buildUnloader(x) {
-  const group = new THREE.Group();
-  group.position.set(x, 0, 0);
-  const base = new THREE.Mesh(new THREE.BoxGeometry(1.8, TRACK_Y - 0.2, 2.2), MATS.machineBodyDark);
-  base.position.set(0, (TRACK_Y - 0.2)/2, 0);
-  group.add(base);
-
-  const passBox = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.8, 1.4), MATS.machineBodyBlue);
-  passBox.position.set(0, TRACK_Y + 0.9, 0);
-  group.add(passBox);
-  return group;
-}
-scene.add(buildUnloader(16.8));
-
-// 动态 PCB 板流转
-class ActivePCB {
-  constructor(initialX) {
-    this.mesh = new THREE.Group();
-    const board = new THREE.Mesh(new THREE.BoxGeometry(PCB_LENGTH, PCB_THICKNESS, PCB_WIDTH), MATS.pcbBoard);
-    board.position.y = PCB_THICKNESS / 2;
-    board.castShadow = true;
-    this.mesh.add(board);
-
-    // 芯片组
-    const bga = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.04, 0.45), MATS.icChip);
-    bga.position.set(-0.25, PCB_THICKNESS + 0.02, 0);
-    this.mesh.add(bga);
-
-    const qfp = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.03, 0.35), MATS.icChip);
-    qfp.position.set(0.45, PCB_THICKNESS + 0.015, -0.3);
-    this.mesh.add(qfp);
-
-    this.mesh.position.set(initialX, TRACK_Y, TRACK_Z);
-    scene.add(this.mesh);
-  }
-}
-
-const pcbQueue = [
-  new ActivePCB(-12.5),
-  new ActivePCB(-8.5),
-  new ActivePCB(0.0),
-  new ActivePCB(5.2),
-  new ActivePCB(8.8),
-  new ActivePCB(13.5)
-];
-
-/**
- * =========================================================================
- * 贴片机高精运动学与物理运动循环 (Kinematics & Animation FSM)
- * =========================================================================
- */
-let isRunning = true;
-let isEStop = false;
-let simSpeed = 1.0;
-let animationTime = 0;
-let isGatewayMode = false;
-
-const SMT_STATES = {
-  MOVE_TO_FEEDER: 0,
-  PICK_COMPONENT: 1,
-  MOVE_TO_VISION: 2,
-  MOVE_TO_PCB: 3,
-  PLACE_COMPONENT: 4
-};
-let smtState = SMT_STATES.MOVE_TO_FEEDER;
-let smtTimer = 0;
-let currentFeederIndex = 0;
-let targetPCBPos = { x: 0, z: 0 };
-
-function updateSMTKinematics(delta) {
-  if (!isRunning || isEStop) return;
-
-  const dt = delta * simSpeed;
-  animationTime += dt;
-  smtTimer += dt;
-
-  // 1. 锡膏印刷机刮刀往返
-  if (printerSqueegee) {
-    printerSqueegee.position.z = Math.sin(animationTime * 1.5) * 0.55;
+  function renderTags() {
+    const q = (document.getElementById('tagSearch').value || '').toLowerCase();
+    const list = tagsMeta.filter((t) => t.id.toLowerCase().includes(q) || t.dev.toLowerCase().includes(q) || t.addr.toLowerCase().includes(q));
+    document.getElementById('tagTableBody').innerHTML = list
+      .map((t) => `<tr>
+        <td class="mono">${t.id}</td>
+        <td class="mono" style="color:var(--active);">${t.dev}</td>
+        <td class="mono">${t.addr}</td>
+        <td class="mono">${t.type}</td>
+        <td><span class="badge ${t.access}">${t.access.toUpperCase()}</span></td>
+        <td class="mono" style="font-weight:600;">${getTagVal(t.id)}</td>
+        <td style="color:var(--muted);">${t.desc}</td>
+      </tr>`).join('');
   }
 
-  // 2. 飞达卷料微动
-  if (feederReels[currentFeederIndex]) {
-    feederReels[currentFeederIndex].rotation.z += 0.01 * simSpeed;
+  function renderDevices() {
+    document.getElementById('devCountBadge').textContent = `${devices.length} 台设备`;
+    document.getElementById('tagCountBadge').textContent = `${tagsMeta.length} 个点位`;
+    document.getElementById('deviceList').innerHTML = devices
+      .map((d, i) => `<div class="device-card ${d.active ? 'active-dev' : ''}">
+        <div>
+          <div class="dev-name"><span class="ind ${d.active ? 'ok' : ''}"></span>${d.id} · ${d.name} <span class="badge w">${d.proto}</span></div>
+          <div class="dev-endpoint">${d.endpoint} · ${d.pollMs} ms</div>
+        </div>
+        <button class="btn" data-dev="${i}">${d.active ? '已激活' : '启用'}</button>
+      </div>`).join('');
+    document.querySelectorAll('[data-dev]').forEach((b) => {
+      b.addEventListener('click', () => {
+        const i = Number(b.dataset.dev);
+        devices[i].active = !devices[i].active;
+        renderDevices();
+      });
+    });
+    document.getElementById('newTagDev').innerHTML = devices.map((d) => `<option value="${d.id}">${d.id} (${d.proto})</option>`).join('');
+    document.getElementById('mgrTagBody').innerHTML = tagsMeta
+      .map((t, i) => `<tr>
+        <td class="mono">${t.id}</td><td class="mono" style="color:var(--active);">${t.dev}</td>
+        <td class="mono">${t.addr}</td><td class="mono">${t.type}</td>
+        <td><span class="badge ${t.access}">${t.access.toUpperCase()}</span></td>
+        <td><button class="btn" style="padding:2px 8px;font-size:11px;" data-del="${i}">移除</button></td>
+      </tr>`).join('');
+    document.querySelectorAll('[data-del]').forEach((b) => {
+      b.addEventListener('click', () => { tagsMeta.splice(Number(b.dataset.del), 1); renderDevices(); renderTags(); });
+    });
   }
 
-  // 3. 贴装头运动
-  if (!isGatewayMode) {
-    const PICK_Z_DEPTH = -0.16;
-    const PLACE_Z_DEPTH = -0.14;
+  document.getElementById('tagSearch').addEventListener('input', renderTags);
+  document.getElementById('btnAddTag').addEventListener('click', () => {
+    const id = document.getElementById('newTagId').value.trim();
+    const dev = document.getElementById('newTagDev').value;
+    const addr = document.getElementById('newTagAddr').value.trim();
+    if (!id || !addr) return;
+    tagsMeta.push({ id, dev, addr, type: document.getElementById('newTagType').value, access: document.getElementById('newTagAccess').value, desc: '自定义点位' });
+    document.getElementById('newTagId').value = '';
+    document.getElementById('newTagAddr').value = '';
+    renderDevices(); renderTags();
+  });
+  document.getElementById('btnExportManifest').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({ schema: 'tia-web-twin/manifest@1', project: 'smt-pick-and-place', devices, tags: tagsMeta }, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'twin.manifest.json'; a.click();
+  });
 
-    switch (smtState) {
-      case SMT_STATES.MOVE_TO_FEEDER:
-        gantryY.position.z += (1.1 - gantryY.position.z) * 0.12 * simSpeed;
-        const targetFeederX = -1.45 + currentFeederIndex * 0.26;
-        carriageX.position.x += (targetFeederX - carriageX.position.x) * 0.15 * simSpeed;
-        if (Math.abs(gantryY.position.z - 1.1) < 0.05) {
-          smtState = SMT_STATES.PICK_COMPONENT;
-          smtTimer = 0;
-        }
-        break;
+  // 2.5D Isometric SMT Canvas (Warm-CAD Palette)
+  const canvas = document.getElementById('isoCanvas');
+  const ctx = canvas.getContext('2d');
+  const iso = (x, y, z, ox, oy, s) => [ox + (x - z) * 0.866 * s, oy + (x + z) * 0.5 * s - y * s];
 
-      case SMT_STATES.PICK_COMPONENT:
-        const activeNozzle = nozzleArray[currentFeederIndex % 8];
-        if (smtTimer < 0.25) {
-          activeNozzle.position.y = -0.28 + PICK_Z_DEPTH * (smtTimer / 0.25);
-        } else if (smtTimer < 0.4) {
-          activeNozzle.position.y = -0.28 + PICK_Z_DEPTH;
-        } else if (smtTimer < 0.65) {
-          activeNozzle.position.y = -0.28 + PICK_Z_DEPTH * (1 - (smtTimer - 0.4) / 0.25);
-        } else {
-          activeNozzle.position.y = -0.28;
-          targetPCBPos.x = (Math.random() - 0.5) * 1.2;
-          targetPCBPos.z = (Math.random() - 0.5) * 0.8;
-          smtState = SMT_STATES.MOVE_TO_VISION;
-          smtTimer = 0;
-        }
-        break;
+  function drawShadow(x, z, w, d, ox, oy, s, a = 0.14) {
+    const p0 = iso(x, 0, z, ox, oy, s), p1 = iso(x + w, 0, z, ox, oy, s), p2 = iso(x + w, 0, z + d, ox, oy, s), p3 = iso(x, 0, z + d, ox, oy, s);
+    ctx.fillStyle = `rgba(28, 25, 23, ${a})`;
+    ctx.beginPath(); ctx.moveTo(...p0); ctx.lineTo(...p1); ctx.lineTo(...p2); ctx.lineTo(...p3); ctx.closePath(); ctx.fill();
+  }
 
-      case SMT_STATES.MOVE_TO_VISION:
-        gantryY.position.z += (0.5 - gantryY.position.z) * 0.18 * simSpeed;
-        carriageX.position.x += (0.0 - carriageX.position.x) * 0.18 * simSpeed;
-        if (Math.abs(gantryY.position.z - 0.5) < 0.08) {
-          smtState = SMT_STATES.MOVE_TO_PCB;
-          smtTimer = 0;
-          triggerLog(currentLang === 'zh' 
-            ? `贴装头相机视觉识别完成 [元件 #${currentFeederIndex + 1} 对准合格]` 
-            : `Vision alignment complete [Component #${currentFeederIndex + 1} aligned]`);
-        }
-        break;
-
-      case SMT_STATES.MOVE_TO_PCB:
-        gantryY.position.z += (targetPCBPos.z - gantryY.position.z) * 0.16 * simSpeed;
-        carriageX.position.x += (targetPCBPos.x - carriageX.position.x) * 0.16 * simSpeed;
-        if (Math.abs(gantryY.position.z - targetPCBPos.z) < 0.04 && Math.abs(carriageX.position.x - targetPCBPos.x) < 0.04) {
-          smtState = SMT_STATES.PLACE_COMPONENT;
-          smtTimer = 0;
-        }
-        break;
-
-      case SMT_STATES.PLACE_COMPONENT:
-        const placingNozzle = nozzleArray[currentFeederIndex % 8];
-        if (smtTimer < 0.2) {
-          placingNozzle.position.y = -0.28 + PLACE_Z_DEPTH * (smtTimer / 0.2);
-        } else if (smtTimer < 0.35) {
-          placingNozzle.position.y = -0.28 + PLACE_Z_DEPTH;
-        } else if (smtTimer < 0.55) {
-          placingNozzle.position.y = -0.28 + PLACE_Z_DEPTH * (1 - (smtTimer - 0.35) / 0.2);
-        } else {
-          placingNozzle.position.y = -0.28;
-          currentFeederIndex = (currentFeederIndex + 1) % 12;
-          smtState = SMT_STATES.MOVE_TO_FEEDER;
-          smtTimer = 0;
-          incrementProductionMetrics();
-        }
-        break;
+  function drawBox(x, y, z, w, h, d, c, ox, oy, s) {
+    const p000 = iso(x, y, z, ox, oy, s), p100 = iso(x + w, y, z, ox, oy, s), p101 = iso(x + w, y, z + d, ox, oy, s), p001 = iso(x, y, z + d, ox, oy, s);
+    const p010 = iso(x, y + h, z, ox, oy, s), p110 = iso(x + w, y + h, z, ox, oy, s), p111 = iso(x + w, y + h, z + d, ox, oy, s), p011 = iso(x, y + h, z + d, ox, oy, s);
+    ctx.lineJoin = 'round';
+    if (!state.xray) {
+      ctx.fillStyle = c.right; ctx.beginPath(); ctx.moveTo(...p100); ctx.lineTo(...p101); ctx.lineTo(...p111); ctx.lineTo(...p110); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = c.left; ctx.beginPath(); ctx.moveTo(...p001); ctx.lineTo(...p101); ctx.lineTo(...p111); ctx.lineTo(...p011); ctx.closePath(); ctx.fill();
+      ctx.fillStyle = c.top; ctx.beginPath(); ctx.moveTo(...p010); ctx.lineTo(...p110); ctx.lineTo(...p111); ctx.lineTo(...p011); ctx.closePath(); ctx.fill();
+    }
+    if (c.edge || state.xray) {
+      ctx.strokeStyle = state.xray ? 'rgba(2,132,199,0.5)' : c.edge;
+      ctx.lineWidth = 0.85;
+      ctx.beginPath();
+      ctx.moveTo(...p010); ctx.lineTo(...p110); ctx.lineTo(...p111); ctx.lineTo(...p011); ctx.closePath();
+      ctx.moveTo(...p110); ctx.lineTo(...p100); ctx.moveTo(...p111); ctx.lineTo(...p101); ctx.moveTo(...p011); ctx.lineTo(...p001);
+      ctx.stroke();
     }
   }
 
-  // 坐标更新
-  document.getElementById('axis-x').innerText = (carriageX.position.x * 100).toFixed(2);
-  document.getElementById('axis-y').innerText = (gantryY.position.z * 100).toFixed(2);
+  function drawCallout(wx, wy, wz, dx, dy, title, sub, color, ox, oy, s) {
+    const [sx, sy] = iso(wx, wy, wz, ox, oy, s);
+    const tx = sx + dx, ty = sy + dy;
+    ctx.strokeStyle = 'rgba(28, 25, 23, 0.25)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(sx, sy, 3, 0, Math.PI * 2); ctx.fill();
 
-  // AOI 频闪
-  if (aoiLightDome) {
-    const flash = Math.sin(animationTime * 4.0);
-    aoiLightDome.material.color.setHex(flash > 0.8 ? 0xffffff : (flash > 0 ? 0x38bdf8 : 0x0284c7));
+    ctx.font = '600 11px "Fira Sans", "Segoe UI", sans-serif';
+    const w1 = ctx.measureText(title).width;
+    ctx.font = '400 10px "Fira Code", Consolas, monospace';
+    const w2 = ctx.measureText(sub).width;
+    const bw = Math.max(w1, w2) + 20, bh = 36;
+    const bx = dx >= 0 ? tx : tx - bw, by = ty - bh / 2;
+
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+    ctx.strokeStyle = 'rgba(28, 25, 23, 0.14)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 5); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = color; ctx.beginPath(); ctx.arc(bx + 9, by + 12, 2.5, 0, Math.PI * 2); ctx.fill();
+    ctx.textAlign = 'left'; ctx.fillStyle = '#1c1917'; ctx.font = '600 11px "Fira Sans", "Segoe UI", sans-serif';
+    ctx.fillText(title, bx + 16, by + 15);
+    ctx.fillStyle = '#57534e'; ctx.font = '400 10px "Fira Code", Consolas, monospace';
+    ctx.fillText(sub, bx + 9, by + 28);
   }
 
-  // 回流焊脉动
-  ovenZoneMeshes.forEach((mesh, idx) => {
-    const pulse = 1.0 + Math.sin(animationTime * 3.0 + idx) * 0.15;
-    mesh.scale.set(1.0, pulse, 1.0);
-  });
-}
+  function renderCanvas() {
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 2;
+    const W = rect.width, H = rect.height;
+    if (canvas.width !== Math.floor(W * dpr) || canvas.height !== Math.floor(H * dpr)) {
+      canvas.width = Math.floor(W * dpr); canvas.height = Math.floor(H * dpr);
+    }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
 
-/**
- * =========================================================================
- * 上位机 SCADA 数据渲染
- * =========================================================================
- */
-let totalProduced = 2864;
-let cphBase = 43200;
-const waveHistory = new Array(40).fill(43200);
+    const ox = W * 0.49, oy = H * 0.50, s = Math.min(W, H) * 0.032;
 
-function incrementProductionMetrics() {
-  totalProduced++;
-  document.getElementById('kpi-count').innerText = totalProduced.toLocaleString();
+    ctx.strokeStyle = 'rgba(28, 25, 23, 0.05)'; ctx.lineWidth = 1;
+    for (let gx = -16; gx <= 16; gx += 1.6) {
+      const a = iso(gx, 0, -8, ox, oy, s), b = iso(gx, 0, 8, ox, oy, s);
+      ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+    }
+    for (let gz = -8; gz <= 8; gz += 1.6) {
+      const a = iso(-16, 0, gz, ox, oy, s), b = iso(16, 0, gz, ox, oy, s);
+      ctx.beginPath(); ctx.moveTo(...a); ctx.lineTo(...b); ctx.stroke();
+    }
 
-  cphBase += (Math.random() - 0.5) * 350;
-  cphBase = Math.max(41000, Math.min(44800, cphBase));
-  document.getElementById('kpi-cph').innerText = Math.round(cphBase).toLocaleString();
-  document.getElementById('wave-val').innerText = (cphBase / 1000).toFixed(1) + 'k';
+    const shell = { top: '#e2e8f0', left: '#cbd5e1', right: '#94a3b8', edge: 'rgba(15,23,42,0.14)' };
+    const frame = { top: '#64748b', left: '#475569', right: '#334155', edge: 'rgba(15,23,42,0.18)' };
+    const belt = { top: '#334155', left: '#1e293b', right: '#0f172a', edge: 'rgba(15,23,42,0.2)' };
+    const pcb = { top: '#10b981', left: '#059669', right: '#047857', edge: 'rgba(255,255,255,0.3)' };
+    const accent = { top: '#38bdf8', left: '#0284c7', right: '#0369a1', edge: 'rgba(255,255,255,0.35)' };
+    const ovenCol = { top: '#fbbf24', left: '#d97706', right: '#b45309', edge: 'rgba(255,255,255,0.25)' };
 
-  waveHistory.shift();
-  waveHistory.push(cphBase);
-  drawWaveChart();
-}
+    // Ground shadow
+    drawShadow(-13.5, -1.8, 27.2, 3.6, ox, oy, s, 0.14);
 
-const cphCanvas = document.getElementById('cph-canvas');
-const ctx = cphCanvas.getContext('2d');
-function drawWaveChart() {
-  const w = cphCanvas.width = cphCanvas.offsetWidth * window.devicePixelRatio;
-  const h = cphCanvas.height = cphCanvas.offsetHeight * window.devicePixelRatio;
-  ctx.clearRect(0, 0, w, h);
-  ctx.strokeStyle = '#38bdf8';
-  ctx.lineWidth = 2 * window.devicePixelRatio;
-  ctx.beginPath();
-  const min = 40000;
-  const max = 46000;
-  for (let i = 0; i < waveHistory.length; i++) {
-    const x = (i / (waveHistory.length - 1)) * w;
-    const y = h - ((waveHistory[i] - min) / (max - min)) * (h - 10) - 5;
-    if (i === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
+    // Unified Y=2.40m Conveyor Track
+    drawBox(-13.2, 1.9, -1.2, 26.4, 0.45, 2.4, frame, ox, oy, s);
+    drawBox(-13.0, 2.35, -0.9, 26.0, 0.12, 1.8, belt, ox, oy, s);
+
+    // ST01 Loader
+    drawBox(-13.0, 0, -1.5, 2.2, 4.2, 3.0, shell, ox, oy, s);
+    // ST02 Solder Printer
+    drawBox(-9.2, 0, -1.5, 2.6, 4.0, 3.0, shell, ox, oy, s);
+    drawBox(-8.6, 4.0, -0.9, 1.4, 0.4, 1.8, accent, ox, oy, s);
+
+    // PCBs on line
+    for (const px of state.pcbs) {
+      drawBox(px, 2.48, -0.5, 1.1, 0.14, 1.0, pcb, ox, oy, s);
+    }
+
+    // ST04 High-Speed Pick & Place Machine (Center)
+    drawBox(-3.6, 0, -1.8, 4.8, 2.0, 3.6, frame, ox, oy, s);
+    drawBox(-3.5, 2.0, -1.7, 0.35, 3.0, 0.35, shell, ox, oy, s);
+    drawBox(0.8, 2.0, -1.7, 0.35, 3.0, 0.35, shell, ox, oy, s);
+    drawBox(-3.5, 2.0, 1.35, 0.35, 3.0, 0.35, shell, ox, oy, s);
+    drawBox(0.8, 2.0, 1.35, 0.35, 3.0, 0.35, shell, ox, oy, s);
+    drawBox(-3.6, 4.9, -1.8, 4.8, 0.45, 3.6, shell, ox, oy, s);
+
+    // Animated X/Y Gantry Head
+    const gx = -1.6 + Math.sin(state.phase * 2.2) * 1.4;
+    const gz = Math.cos(state.phase * 1.7) * 0.7;
+    drawBox(gx, 3.6, gz - 0.35, 0.8, 1.2, 0.7, accent, ox, oy, s);
+
+    // 12 Feeder Bank (Front)
+    drawBox(-3.2, 0.8, 1.8, 4.0, 1.6, 1.0, frame, ox, oy, s);
+
+    // ST05 8-Zone Reflow Oven
+    drawBox(2.6, 0, -1.6, 6.2, 3.8, 3.2, shell, ox, oy, s);
+    drawBox(3.0, 3.8, -1.1, 5.4, 0.28, 2.2, ovenCol, ox, oy, s);
+
+    // ST06 AOI Inspection
+    drawBox(9.8, 0, -1.4, 2.0, 4.1, 2.8, shell, ox, oy, s);
+    drawBox(10.3, 4.1, -0.7, 1.0, 0.35, 1.4, accent, ox, oy, s);
+
+    // Callouts
+    drawCallout(-7.9, 4.4, 0, -28, -42, 'ST02 · 锡膏印刷机', 'S7 DB1.DBX1.0', '#0284c7', ox, oy, s);
+    drawCallout(gx + 0.4, 4.9, gz, -18, -58, 'ST04 · 高速贴装头', '43,200 CPH · 8 吸嘴', '#059669', ox, oy, s);
+    drawCallout(-1.2, 1.6, 2.8, -28, 52, '12 联装飞达料站', 'Modbus TCP · HR0', '#0284c7', ox, oy, s);
+    drawCallout(5.7, 4.08, 0, 22, -48, 'ST05 · 8 温区回流焊', '245.2°C · Modbus RTU', '#d97706', ox, oy, s);
+    drawCallout(10.8, 4.45, 0, 22, -32, 'ST06 · AOI 检测', '99.88% · Raw TCP', '#059669', ox, oy, s);
   }
-  ctx.stroke();
-  ctx.lineTo(w, h);
-  ctx.lineTo(0, h);
-  ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
-  ctx.fill();
-}
-window.addEventListener('resize', drawWaveChart);
-setTimeout(drawWaveChart, 100);
 
-// 生成 12 飞达卡片
-const feederContainer = document.getElementById('feeder-container');
-const feederNames = ['0402 C', '0603 R', '0805 C', 'QFP-48', 'BGA-144', 'SOT-23', '0402 R', '0603 C', 'LED-0805', 'Inductor', 'SOP-8', 'Diode'];
-const feederCounts = [3400, 2900, 1800, 420, 210, 890, 4100, 2700, 3100, 680, 520, 1400];
-feederNames.forEach((name, idx) => {
-  const row = document.createElement('div');
-  row.className = 'feeder-row';
-  const pct = Math.min(100, Math.round((feederCounts[idx] / 5000) * 100));
-  row.innerHTML = `
-    <span style="color:var(--text-muted);font-family:var(--font-mono);">#${(idx+1).toString().padStart(2,'0')}</span>
-    <span style="font-weight:600;">${name}</span>
-    <div class="feeder-bar-bg"><div class="feeder-bar-fill ${pct < 20 ? 'warn' : ''}" style="width:${pct}%"></div></div>
-    <span style="text-align:right;font-family:var(--font-mono);color:#fff">${feederCounts[idx]}</span>
-  `;
-  feederContainer.appendChild(row);
-});
-
-// 生成 8 联装吸嘴
-const nozzleContainer = document.getElementById('nozzle-container');
-for (let n = 1; n <= 8; n++) {
-  const cell = document.createElement('div');
-  cell.className = 'nozzle-cell';
-  cell.innerHTML = `
-    <div class="nozzle-title">${currentLang === 'zh' ? '吸嘴 #' : 'Nozzle #'}${n}</div>
-    <div class="nozzle-kpa" id="nz-kpa-${n}">-84.2</div>
-    <div class="nozzle-status">OK</div>
-  `;
-  nozzleContainer.appendChild(cell);
-}
-
-// 生成 8 温区
-const ovenContainer = document.getElementById('oven-container');
-const zoneTemps = [148, 162, 175, 188, 222, 246, 215, 78];
-zoneTemps.forEach((temp, idx) => {
-  const row = document.createElement('div');
-  row.className = 'oven-zone-row';
-  const pct = Math.min(100, Math.round((temp / 260) * 100));
-  row.innerHTML = `
-    <span class="oven-zone-name" style="color:var(--text-muted);">${I18N[currentLang].zoneNames[idx]}</span>
-    <div class="temp-bar-bg"><div class="temp-bar-fill" style="width:${pct}%"></div></div>
-    <span style="font-family:var(--font-mono);font-weight:700;color:#fff;">${temp}°C</span>
-  `;
-  ovenContainer.appendChild(row);
-});
-
-function triggerLog(msg) {
-  document.getElementById('log-text').innerText = msg;
-}
-
-/**
- * =========================================================================
- * 语言即时动态切换函数 (Language Switcher)
- * =========================================================================
- */
-function applyLanguage(lang) {
-  currentLang = lang;
-  const t = I18N[lang];
-
-  // 顶栏
-  document.getElementById('ui-brand-title').innerText = t.brandTitle;
-  document.getElementById('ui-brand-sub').innerText = t.brandSubtitle;
-  document.getElementById('sys-status-text').innerText = isRunning ? t.statusRunning : (isEStop ? t.statusEStop : t.statusPaused);
-  document.getElementById('gw-link-text').innerText = isGatewayMode ? t.gwConnected : t.gwOffline;
-  document.getElementById('ui-batch-label').innerText = t.batchLabel;
-  document.getElementById('ui-tact-label').innerText = t.tactLabel;
-  document.getElementById('btn-toggle-lang').innerText = t.langBtn;
-  document.getElementById('btn-toggle-xray').innerText = t.btnXRay;
-  document.getElementById('btn-toggle-tags').innerText = t.btnTags;
-  document.getElementById('btn-play-pause').innerText = isRunning ? t.btnPause : t.btnResume;
-  document.getElementById('btn-estop').innerText = isEStop ? t.btnResetEStop : t.btnEStop;
-
-  // 左侧 KPI 面板
-  document.getElementById('ui-panel-metrics').innerText = t.panelMetricsTitle;
-  document.getElementById('ui-kpi-cph').innerText = t.kpiCphLabel;
-  document.getElementById('ui-kpi-cph-sub').innerText = t.kpiCphSub;
-  document.getElementById('ui-kpi-yield').innerText = t.kpiYieldLabel;
-  document.getElementById('ui-kpi-yield-sub').innerText = t.kpiYieldSub;
-  document.getElementById('ui-kpi-count').innerText = t.kpiCountLabel;
-  document.getElementById('ui-kpi-count-sub').innerText = t.kpiCountSub;
-  document.getElementById('ui-kpi-oee').innerText = t.kpiOeeLabel;
-  document.getElementById('ui-kpi-oee-sub').innerText = t.kpiOeeSub;
-  document.getElementById('ui-wave-title').innerText = t.waveTitle;
-  document.getElementById('ui-axis-title').innerText = t.axisTitle;
-  document.getElementById('ui-axis-x').innerText = t.axisXLabel;
-  document.getElementById('ui-axis-y').innerText = t.axisYLabel;
-  document.getElementById('ui-vision-title').innerText = t.visionTitle;
-
-  // 右侧遥测面板
-  document.getElementById('ui-feeder-title').innerText = t.feederTitle;
-  document.getElementById('ui-nozzle-title').innerText = t.nozzleTitle;
-  document.getElementById('ui-oven-title').innerText = t.ovenTitle;
-
-  // 吸嘴格文字
-  document.querySelectorAll('.nozzle-title').forEach((el, idx) => {
-    el.innerText = (lang === 'zh' ? '吸嘴 #' : 'Nozzle #') + (idx + 1);
-  });
-
-  // 温区文字
-  document.querySelectorAll('.oven-zone-name').forEach((el, idx) => {
-    el.innerText = t.zoneNames[idx];
-  });
-
-  // 底栏
-  document.getElementById('ui-view-label').innerText = t.viewLabel;
-  const viewBtns = document.querySelectorAll('.camera-views .view-btn');
-  const viewKeys = [t.viewOverview, t.viewSmt, t.viewFeeder, t.viewOven, t.viewAoi, t.viewPcb];
-  viewBtns.forEach((btn, idx) => {
-    btn.innerText = viewKeys[idx];
-  });
-
-  document.getElementById('btn-sim-defect').innerText = t.btnDefect;
-  document.getElementById('btn-speed-toggle').innerText = `${t.btnSpeed}${simSpeed.toFixed(1)}x`;
-
-  // 3D 浮动标签
-  tagElements.forEach(({ el }, idx) => {
-    el.innerText = t.tagStations[idx];
-  });
-
-  triggerLog(t.logReady);
-}
-
-document.getElementById('btn-toggle-lang').addEventListener('click', () => {
-  const nextLang = currentLang === 'zh' ? 'en' : 'zh';
-  applyLanguage(nextLang);
-});
-
-/**
- * =========================================================================
- * tia-twin-client 工业网关无缝接入
- * =========================================================================
- */
-let twinClient = null;
-if (typeof TiaTwinClient !== 'undefined') {
-  try {
-    twinClient = new TiaTwinClient({ url: 'ws://127.0.0.1:8765', autoReconnect: true });
-    
-    twinClient.on('connect', () => {
-      isGatewayMode = true;
-      document.getElementById('gw-link-dot').className = 'indicator green';
-      document.getElementById('gw-link-text').innerText = I18N[currentLang].gwConnected;
-      triggerLog(currentLang === 'zh' 
-        ? '🟢 成功连接本地工业网关 ws://127.0.0.1:8765，进入真机闭环驱动模式' 
-        : '🟢 Connected to local gateway ws://127.0.0.1:8765, entered live PLC drive mode');
-    });
-
-    twinClient.on('disconnect', () => {
-      isGatewayMode = false;
-      document.getElementById('gw-link-dot').className = 'indicator blue';
-      document.getElementById('gw-link-text').innerText = I18N[currentLang].gwOffline;
-      triggerLog(currentLang === 'zh'
-        ? '⚪ 网关断开，自动平滑切回离线自主运动学仿真模式'
-        : '⚪ Gateway disconnected, seamlessly fell back to offline simulation mode');
-    });
-
-    twinClient.on('tag', (id, val) => {
-      if (id === 'smt.axis_x') carriageX.position.x = val / 100.0;
-      if (id === 'smt.axis_y') gantryY.position.z = val / 100.0;
-      if (id === 'smt.vacuum_kpa') document.getElementById('nz-kpa-1').innerText = Number(val).toFixed(1);
-      if (id === 'smt.cph') document.getElementById('kpi-cph').innerText = Math.round(val).toLocaleString();
-      if (id === 'smt.total_count') document.getElementById('kpi-count').innerText = val;
-      if (id === 'smt.running') {
-        isRunning = Boolean(val);
-        document.getElementById('sys-status-text').innerText = isRunning ? I18N[currentLang].statusRunning : (isEStop ? I18N[currentLang].statusEStop : I18N[currentLang].statusPaused);
-        document.getElementById('sys-status-dot').className = `indicator ${isRunning ? 'green' : 'red'}`;
+  let last = performance.now();
+  function loop(now) {
+    const dt = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    if (state.running && !state.estop) {
+      state.phase += dt * state.speed;
+      state.axisX = +(Math.sin(state.phase * 2.2) * 180).toFixed(2);
+      state.axisY = +(Math.cos(state.phase * 1.7) * 220).toFixed(2);
+      state.axisZ = +(8 + Math.abs(Math.sin(state.phase * 3.4)) * 14).toFixed(2);
+      for (let i = 0; i < state.pcbs.length; i++) {
+        state.pcbs[i] += dt * 1.6 * state.speed;
+        if (state.pcbs[i] > 12.2) {
+          state.pcbs[i] = -12.6;
+          state.totalCount += 1;
+          state.feederIdx = (state.feederIdx % 12) + 1;
+        }
       }
-    });
-
-    twinClient.connect();
-  } catch (e) {
-    console.warn('TiaTwinClient info:', e);
+      document.getElementById('valAxisX').textContent = `${state.axisX >= 0 ? '+' : ''}${state.axisX} mm`;
+      document.getElementById('valAxisY').textContent = `${state.axisY >= 0 ? '+' : ''}${state.axisY} mm`;
+      document.getElementById('valAxisZ').textContent = `${state.axisZ} mm`;
+      document.getElementById('valFeeder').textContent = `SLOT #${String(state.feederIdx).padStart(2, '0')}`;
+      document.getElementById('kpiTotal').textContent = state.totalCount.toLocaleString();
+      document.getElementById('headStatus').textContent = 'RUN';
+    } else {
+      document.getElementById('headStatus').textContent = state.estop ? 'E-STOP' : 'PAUSE';
+    }
+    renderCanvas();
+    requestAnimationFrame(loop);
   }
-}
 
-/**
- * =========================================================================
- * 视口与交互
- * =========================================================================
- */
-const VIEW_PRESETS = {
-  overview: { pos: new THREE.Vector3(2, 12, 20), target: new THREE.Vector3(1, 2.5, 0) },
-  smt:      { pos: new THREE.Vector3(0, 5.5, 4.8), target: new THREE.Vector3(0, TRACK_Y + 0.5, 0) },
-  feeder:   { pos: new THREE.Vector3(-0.5, 4.2, 3.2), target: new THREE.Vector3(-0.5, TRACK_Y, 1.4) },
-  oven:     { pos: new THREE.Vector3(7.0, 5.8, 5.5), target: new THREE.Vector3(7.0, TRACK_Y + 0.4, 0) },
-  aoi:      { pos: new THREE.Vector3(13.5, 5.2, 4.2), target: new THREE.Vector3(13.5, TRACK_Y + 0.5, 0) },
-  pcb:      { pos: new THREE.Vector3(0, 4.5, 2.8), target: new THREE.Vector3(0, TRACK_Y, 0) }
-};
-
-document.querySelectorAll('.view-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const preset = VIEW_PRESETS[btn.getAttribute('data-view')];
-    if (preset) animateCameraTo(preset.pos, preset.target);
-  });
-});
-
-function animateCameraTo(destPos, destTarget) {
-  const startPos = camera.position.clone();
-  const startTarget = controls.target.clone();
-  let progress = 0;
-  function step() {
-    progress += 0.04;
-    const ease = 0.5 - Math.cos(progress * Math.PI) / 2;
-    camera.position.lerpVectors(startPos, destPos, ease);
-    controls.target.lerpVectors(startTarget, destTarget, ease);
-    if (progress < 1.0) requestAnimationFrame(step);
-  }
-  step();
-}
-
-// 外壳透视
-let isXRay = false;
-document.getElementById('btn-toggle-xray').addEventListener('click', (e) => {
-  isXRay = !isXRay;
-  e.target.classList.toggle('active', isXRay);
-  shellMeshes.forEach(mesh => {
-    mesh.material = isXRay ? MATS.acrylic : ((mesh === shellMeshes[0] || mesh === shellMeshes[3]) ? MATS.machineWhite : MATS.machineBodyDark);
-  });
-  if (twinClient && isGatewayMode) twinClient.write('smt.xray_mode', isXRay);
-  triggerLog(isXRay 
-    ? (currentLang === 'zh' ? "🔍 已开启设备机箱半透视 X-Ray 视图" : "🔍 Enabled translucent X-Ray enclosure view") 
-    : (currentLang === 'zh' ? "🔒 已恢复设备实体钣金外壳" : "🔒 Restored solid sheet metal enclosures"));
-});
-
-// 启停
-const playPauseBtn = document.getElementById('btn-play-pause');
-playPauseBtn.addEventListener('click', () => {
-  isRunning = !isRunning;
-  playPauseBtn.innerText = isRunning ? I18N[currentLang].btnPause : I18N[currentLang].btnResume;
-  playPauseBtn.classList.toggle('active', isRunning);
-  document.getElementById('sys-status-text').innerText = isRunning ? I18N[currentLang].statusRunning : I18N[currentLang].statusPaused;
-  document.getElementById('sys-status-dot').className = `indicator ${isRunning ? 'green' : 'red'}`;
-  if (twinClient && isGatewayMode) {
-    twinClient.write(isRunning ? 'cmd.start' : 'cmd.stop', true);
-  }
-  triggerLog(isRunning 
-    ? (currentLang === 'zh' ? "生产线恢复自动循环运转" : "Production line resumed auto cycle") 
-    : (currentLang === 'zh' ? "产线已安全暂停，维持真空保持状态" : "Production paused, vacuum hold engaged"));
-});
-
-// 急停
-const estopBtn = document.getElementById('btn-estop');
-estopBtn.addEventListener('click', () => {
-  isEStop = !isEStop;
-  if (isEStop) {
-    isRunning = false;
-    estopBtn.innerText = I18N[currentLang].btnResetEStop;
-    statusTowerLights.red.material = MATS.ledRed;
-    statusTowerLights.green.material = MATS.darkMetal;
-    document.getElementById('sys-status-text').innerText = I18N[currentLang].statusEStop;
-    document.getElementById('sys-status-dot').className = "indicator red";
-    if (twinClient && isGatewayMode) twinClient.write('cmd.estop', true);
-    triggerLog(currentLang === 'zh' 
-      ? "🛑 收到工业安全急停信号！全线伺服制动，所有吸嘴真空安全泄压" 
-      : "🛑 Emergency Stop triggered! All servos braked, vacuum depressurized");
-  } else {
-    isRunning = true;
-    estopBtn.innerText = I18N[currentLang].btnEStop;
-    statusTowerLights.red.material = MATS.darkMetal;
-    statusTowerLights.green.material = MATS.ledGreen;
-    document.getElementById('sys-status-text').innerText = I18N[currentLang].statusRunning;
-    document.getElementById('sys-status-dot').className = "indicator green";
-    if (twinClient && isGatewayMode) twinClient.write('cmd.reset', true);
-    triggerLog(currentLang === 'zh' 
-      ? "产线急停已复位，伺服回原点完成，继续生产" 
-      : "Emergency Stop reset, servos homed, production continuing");
-  }
-});
-
-// 仿真倍速
-const speedBtn = document.getElementById('btn-speed-toggle');
-speedBtn.addEventListener('click', () => {
-  if (simSpeed === 1.0) simSpeed = 2.0;
-  else if (simSpeed === 2.0) simSpeed = 5.0;
-  else simSpeed = 1.0;
-  speedBtn.innerText = `${I18N[currentLang].btnSpeed}${simSpeed.toFixed(1)}x`;
-  triggerLog(currentLang === 'zh' 
-    ? `仿真速度已切换为 ${simSpeed.toFixed(1)} 倍速` 
-    : `Simulation speed set to ${simSpeed.toFixed(1)}x`);
-});
-
-// 模拟缺陷
-document.getElementById('btn-sim-defect').addEventListener('click', () => {
-  statusTowerLights.yellow.material = MATS.ledYellow;
-  document.getElementById('kpi-yield').innerText = "99.82%";
-  triggerLog(currentLang === 'zh' 
-    ? "⚠️ [AOI 视觉告警] 焊盘 C14 锡膏量不足，判定轻微偏位 (0.012mm)" 
-    : "⚠️ [AOI Vision Alert] Pad C14 insufficient solder paste, slight offset (0.012mm)");
-  setTimeout(() => { statusTowerLights.yellow.material = MATS.darkMetal; }, 4000);
-});
-
-// 3D 浮动标签
-let showTags = true;
-const TAG_STATIONS = [
-  { name: "01 上板机", pos: new THREE.Vector3(-12.5, TRACK_Y + 1.8, 0) },
-  { name: "02 锡膏印刷机", pos: new THREE.Vector3(-8.5, TRACK_Y + 2.2, 0) },
-  { name: "03 接驳台", pos: new THREE.Vector3(-5.0, TRACK_Y + 1.0, 0) },
-  { name: "04 高速贴片机", pos: new THREE.Vector3(0.0, TRACK_Y + 2.6, 0) },
-  { name: "05 回流焊接炉", pos: new THREE.Vector3(7.0, TRACK_Y + 2.4, 0) },
-  { name: "06 AOI 光学检测", pos: new THREE.Vector3(13.5, TRACK_Y + 2.2, 0) },
-  { name: "07 自动下板机", pos: new THREE.Vector3(16.8, TRACK_Y + 1.8, 0) },
-];
-
-const tagElements = TAG_STATIONS.map((st, idx) => {
-  const el = document.createElement('div');
-  el.className = 'annotation-tag';
-  el.innerText = I18N[currentLang].tagStations[idx];
-  container.appendChild(el);
-  return { el, pos: st.pos };
-});
-
-document.getElementById('btn-toggle-tags').addEventListener('click', (e) => {
-  showTags = !showTags;
-  e.target.classList.toggle('active', showTags);
-  tagElements.forEach(t => t.el.style.display = showTags ? 'block' : 'none');
-});
-
-function updateTagsPosition() {
-  if (!showTags) return;
-  const tempV = new THREE.Vector3();
-  tagElements.forEach(({ el, pos }) => {
-    tempV.copy(pos).project(camera);
-    if (tempV.z > 1.0) { el.style.opacity = '0'; return; }
-    const x = (tempV.x * 0.5 + 0.5) * window.innerWidth;
-    const y = (-(tempV.y * 0.5) + 0.5) * window.innerHeight;
-    el.style.left = `${x}px`;
-    el.style.top = `${y}px`;
-    el.style.opacity = '1';
-  });
-}
-
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-// 动画主循环
-const clock = new THREE.Clock();
-function animate() {
-  requestAnimationFrame(animate);
-  const delta = clock.getDelta();
-  updateSMTKinematics(delta);
-  controls.update();
-  updateTagsPosition();
-  renderer.render(scene, camera);
-}
-animate();
+  renderProcess();
+  renderTags();
+  renderDevices();
+  requestAnimationFrame(loop);
+})();

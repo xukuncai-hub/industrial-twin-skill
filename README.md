@@ -58,9 +58,9 @@
         <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT 高速贴片机生产线 3D 数字孪生" />
       </a>
       <br/>
-      <b><a href="examples/smt-pick-and-place">SMT 高速贴片机生产线 (3D + Blender)</a></b>
+      <b><a href="examples/smt-pick-and-place">SMT 高速贴片机生产线 (2.5D 精密暖灰 SCADA)</a></b>
       <br/>
-      <sub>7 工位产线 · Three.js 零穿模运动学 · Blender 建模脚本</sub>
+      <sub>7 工位 2.5D 闭环 · 12 飞达与 8 温区监控 · 多协议设备管理</sub>
     </td>
   </tr>
 </table>
