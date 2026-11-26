@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="isa-gray">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,8 +22,8 @@
     <div class="brand-box">
       <div class="brand-logo">SMT</div>
       <div class="brand-title">
-        <h1 id="ui-brand-title">SMT-PRO 5000 · 高速贴片机生产线数字孪生系统</h1>
-        <p id="ui-brand-sub">SIEMENS S7 & MODBUS MULTI-PROTOCOL TWIN · VER 4.8</p>
+        <h1 id="ui-brand-title">SMT-PRO 5000 · 贴片产线数字孪生</h1>
+        <p id="ui-brand-sub">S7comm · Modbus · Raw TCP</p>
       </div>
     </div>
 
@@ -47,11 +47,17 @@
     </div>
 
     <div class="topbar-ctrls">
-      <button class="btn" id="btn-toggle-lang" style="background:rgba(56,189,248,0.2);border-color:var(--cyan);font-weight:600;" title="Switch Language / 切换语言">🌐 English</button>
-      <button class="btn" id="btn-toggle-xray" title="切换设备钣金外壳半透明透视">🔍 外壳透视</button>
-      <button class="btn" id="btn-toggle-tags" title="显示或隐藏3D设备标签">🏷️ 工位标注</button>
-      <button class="btn active" id="btn-play-pause">⏸️ 暂停生产</button>
-      <button class="btn danger" id="btn-estop">🛑 产线急停</button>
+      <select id="themeSelect" class="theme-select" aria-label="界面主题">
+        <option value="isa-gray" selected>ISA 中性灰</option>
+        <option value="swiss-light">瑞士浅色</option>
+        <option value="warm-cad">精密暖灰</option>
+        <option value="dark-control">深色控制室</option>
+      </select>
+      <button class="btn" id="btn-toggle-lang" title="Switch Language / 切换语言">English</button>
+      <button class="btn" id="btn-toggle-xray" title="切换设备钣金外壳半透明透视">外壳透视</button>
+      <button class="btn" id="btn-toggle-tags" title="显示或隐藏3D设备标签">工位标注</button>
+      <button class="btn active" id="btn-play-pause">暂停生产</button>
+      <button class="btn danger" id="btn-estop">产线急停</button>
     </div>
   </div>
 
@@ -60,8 +66,8 @@
     <!-- 左侧面板：生产效能 KPI -->
     <div class="hud-panel">
       <div class="panel-head">
-        <h2 id="ui-panel-metrics">📊 综合生产效能</h2>
-        <span class="panel-badge">LIVE METRICS</span>
+        <h2 id="ui-panel-metrics">综合生产效能</h2>
+        <span class="panel-badge">实时</span>
       </div>
 
       <div class="kpi-grid">
@@ -96,7 +102,7 @@
       </div>
 
       <div class="panel-head" style="margin-top:6px;">
-        <h2 id="ui-axis-title">🎯 贴片机核心运动轴坐标 (mm)</h2>
+        <h2 id="ui-axis-title">贴片机核心运动轴坐标 (mm)</h2>
       </div>
       <div class="kpi-grid">
         <div class="kpi-card">
@@ -109,7 +115,7 @@
         </div>
       </div>
 
-      <div style="background:rgba(15,23,42,0.6);border:1px solid rgba(255,255,255,0.06);border-radius:8px;padding:8px;font-size:11px;">
+      <div class="kpi-card" style="font-size:11px;">
         <div id="ui-vision-title" style="color:var(--text-muted);margin-bottom:4px;">飞行视觉相机补偿 (Vision Alignment)</div>
         <div style="display:flex;justify-content:space-between;font-family:var(--font-mono);">
           <span>ΔX: <strong style="color:var(--green)">+0.003 mm</strong></span>
@@ -125,18 +131,18 @@
     <!-- 右侧面板：飞达料站、吸嘴真空、回流焊温区 -->
     <div class="hud-panel">
       <div class="panel-head">
-        <h2 id="ui-feeder-title">📦 飞达料站剩余元件监控 (Reels)</h2>
+        <h2 id="ui-feeder-title">飞达料站剩余元件监控 (Reels)</h2>
         <span class="panel-badge">12 FEEDERS</span>
       </div>
       <div class="feeder-list" id="feeder-container"></div>
 
       <div class="panel-head" style="margin-top:6px;">
-        <h2 id="ui-nozzle-title">💨 8 联装真空吸嘴矩阵 (kPa)</h2>
+        <h2 id="ui-nozzle-title">8 联装真空吸嘴矩阵 (kPa)</h2>
       </div>
       <div class="nozzle-grid" id="nozzle-container"></div>
 
       <div class="panel-head" style="margin-top:6px;">
-        <h2 id="ui-oven-title">🔥 8 温区热风回流焊实时温控</h2>
+        <h2 id="ui-oven-title">8 温区热风回流焊实时温控</h2>
       </div>
       <div class="oven-zones" id="oven-container"></div>
     </div>
@@ -160,12 +166,16 @@
     </div>
 
     <div style="display:flex;gap:8px;">
-      <button class="btn" id="btn-sim-defect" style="font-size:11px;">⚠️ 模拟缺陷报警</button>
-      <button class="btn" id="btn-speed-toggle" style="font-size:11px;">⏩ 速度: 1.0x</button>
+      <button class="btn" id="btn-sim-defect" style="font-size:11px;">模拟缺陷报警</button>
+      <button class="btn" id="btn-speed-toggle" style="font-size:11px;">速度: 1.0x</button>
     </div>
   </div>
 </div>
 
 <script src="app.js"></script>
+<script>
+  const ts = document.getElementById('themeSelect');
+  if (ts) ts.addEventListener('change', () => { document.documentElement.dataset.theme = ts.value; });
+</script>
 </body>
 </html>
