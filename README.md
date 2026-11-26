@@ -44,16 +44,16 @@
 
 <table>
   <tr>
-    <td width="33%" align="center">
-      <a href="examples/plc-lamp-25d">
-        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="启停控制与输出指示灯 2.5D 上位机" />
+    <td width="50%" align="center">
+      <a href="examples/water-treatment-scada">
+        <img src="examples/water-treatment-scada/preview.png" width="100%" alt="智慧水务与污水处理 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/plc-lamp-25d">启停控制与输出小灯 (2.5D 入门闭环)</a></b>
+      <b><a href="examples/water-treatment-scada">智慧水务 A2O+超滤 SCADA (2.5D ISA-Gray)</a></b>
       <br/>
-      <sub>2.5D 交互按钮 · 原子单比特写入 · 串口识别</sub>
+      <sub>四段工艺 2.5D 闭环 · 一级 A 在线水质 · 多协议/串口识别</sub>
     </td>
-    <td width="33%" align="center">
+    <td width="50%" align="center">
       <a href="examples/smart-factory-scada">
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="新能源电驱智能总装线 2.5D SCADA" />
       </a>
@@ -62,7 +62,9 @@
       <br/>
       <sub>6 工位闭环 · 多协议设备管理 · 实时波形</sub>
     </td>
-    <td width="33%" align="center">
+  </tr>
+  <tr>
+    <td width="50%" align="center">
       <a href="examples/smt-pick-and-place">
         <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT 高速贴片机生产线 工艺组态与数据 SCADA" />
       </a>
@@ -70,6 +72,15 @@
       <b><a href="examples/smt-pick-and-place">SMT 贴片产线 (组态与数据)</a></b>
       <br/>
       <sub>7 工位工艺组态 · 飞达与 8 温区 · 多协议</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="examples/plc-lamp-25d">
+        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="启停控制与输出指示灯 2.5D 上位机" />
+      </a>
+      <br/>
+      <b><a href="examples/plc-lamp-25d">启停控制与输出小灯 (2.5D 入门闭环)</a></b>
+      <br/>
+      <sub>2.5D 交互按钮 · 原子单比特写入 · 串口识别</sub>
     </td>
   </tr>
 </table>

@@ -44,16 +44,16 @@
 
 <table>
   <tr>
-    <td width="33%" align="center">
-      <a href="examples/plc-lamp-25d">
-        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="Start/Stop & Output Lamp 2.5D HMI" />
+    <td width="50%" align="center">
+      <a href="examples/water-treatment-scada">
+        <img src="examples/water-treatment-scada/preview.png" width="100%" alt="Smart Water Treatment A2O + UF 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/plc-lamp-25d">Start/Stop &amp; Lamp (2.5D Starter)</a></b>
+      <b><a href="examples/water-treatment-scada">Water Treatment A2O+UF (2.5D ISA-Gray)</a></b>
       <br/>
-      <sub>Interactive 2.5D · Atomic Bit Write · COM Scan</sub>
+      <sub>4-Stage Twin · Online Water Quality · Multi-Proto &amp; COM</sub>
     </td>
-    <td width="33%" align="center">
+    <td width="50%" align="center">
       <a href="examples/smart-factory-scada">
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="Smart Factory EV Drive Assembly 2.5D SCADA" />
       </a>
@@ -62,7 +62,9 @@
       <br/>
       <sub>6-Station Twin · Device Manager · Live Trends</sub>
     </td>
-    <td width="33%" align="center">
+  </tr>
+  <tr>
+    <td width="50%" align="center">
       <a href="examples/smt-pick-and-place">
         <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT Pick & Place Process Mimic SCADA" />
       </a>
@@ -70,6 +72,15 @@
       <b><a href="examples/smt-pick-and-place">SMT Line (Mimic &amp; Data)</a></b>
       <br/>
       <sub>7-Station Mimic · Feeders &amp; Oven · Multi-Proto</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="examples/plc-lamp-25d">
+        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="Start/Stop & Output Lamp 2.5D HMI" />
+      </a>
+      <br/>
+      <b><a href="examples/plc-lamp-25d">Start/Stop &amp; Lamp (2.5D Starter)</a></b>
+      <br/>
+      <sub>Interactive 2.5D · Atomic Bit Write · COM Scan</sub>
     </td>
   </tr>
 </table>

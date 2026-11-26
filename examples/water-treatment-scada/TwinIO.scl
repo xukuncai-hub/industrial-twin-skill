@@ -1,0 +1,38 @@
+// ==============================================================================
+// TIA Portal 外部源文件
+// 工程项目: water-treatment-scada
+// 自动生成自: twin.manifest.json (原生支持跨 DB)
+// 说明：此数据块必须关闭【优化的块访问】，以确保固定物理地址对齐。
+// 导入博途：项目树 -> 外部源文件 -> 添加此文件 -> 右键'从源文件生成块'
+// ==============================================================================
+
+DATA_BLOCK "TwinIO"
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+NON_RETAIN
+   STRUCT
+      cmd_auto : Bool; // DB1.DBX0.0: 全厂自动运行启动
+      cmd_stop : Bool; // DB1.DBX0.1: 全厂有序停机命令
+      cmd_backwash : Bool; // DB1.DBX0.2: 超滤膜反洗触发
+      cmd_dosing : Bool; // DB1.DBX0.3: PAC/PAM 加药泵点动
+      _pad_b0_bits : ARRAY[0..3] OF Bool; // 填充位
+      pump_infeed : Bool; // DB1.DBX1.0: 1# 提升泵运行状态
+      blower_aeration : Bool; // DB1.DBX1.1: 罗茨曝气风机运行状态
+      pump_sludge : Bool; // DB1.DBX1.2: 污泥回流泵运行状态
+      valve_outlet : Bool; // DB1.DBX1.3: 达标排放电动阀开到位
+      alarm_high_level : Bool; // DB1.DBX1.4: 调节池高液位越限报警
+      _pad_b1_bits : ARRAY[0..2] OF Bool; // 填充位
+      _pad_b2_b3 : ARRAY[0..1] OF Byte; // 空间填充
+      tank_reg_level : Real; // DB1.DBD4: 调节池实时液位 (m)
+      flow_inlet : Real; // DB1.DBD8: 进水瞬时流量 (m³/h)
+      wq_do : Real; // DB1.DBD12: 好氧池溶解氧 DO (mg/L)
+      wq_ph : Real; // DB1.DBD16: 出水 pH 值
+      wq_cod : Real; // DB1.DBD20: 出水在线 COD (mg/L)
+      wq_turbidity : Real; // DB1.DBD24: 出水浊度 (NTU)
+      blower_hz : Real; // DB1.DBD28: 曝气风机变频频率 (Hz)
+      prod_daily_m3 : DInt; // DB1.DBD32: 今日累计处理水量 (m³)
+      sys_power_kw : Real; // DB1.DBD36: 全厂实时总功率 (kW)
+   END_STRUCT;
+
+BEGIN
+END_DATA_BLOCK

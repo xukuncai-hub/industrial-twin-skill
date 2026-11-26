@@ -1,0 +1,38 @@
+{
+  "schema": "tia-web-twin/manifest@1",
+  "project": "water-treatment-scada",
+  "title": "智慧水务与污水处理 SCADA · 2.5D 工艺监控系统",
+  "plc": {
+    "protocol": "s7",
+    "ip": "192.168.0.10",
+    "rack": 0,
+    "slot": 1,
+    "db": 1,
+    "pollMs": 100
+  },
+  "tags": [
+    { "id": "cmd.auto", "address": "DB1.DBX0.0", "type": "bool", "access": "rw", "writeMode": "pulse", "pulseMs": 200, "desc": "全厂自动运行启动" },
+    { "id": "cmd.stop", "address": "DB1.DBX0.1", "type": "bool", "access": "rw", "writeMode": "pulse", "pulseMs": 200, "desc": "全厂有序停机命令" },
+    { "id": "cmd.backwash", "address": "DB1.DBX0.2", "type": "bool", "access": "rw", "writeMode": "pulse", "pulseMs": 200, "desc": "超滤膜反洗触发" },
+    { "id": "cmd.dosing", "address": "DB1.DBX0.3", "type": "bool", "access": "rw", "writeMode": "pulse", "pulseMs": 200, "desc": "PAC/PAM 加药泵点动" },
+    { "id": "pump.infeed", "address": "DB1.DBX1.0", "type": "bool", "access": "r", "desc": "1# 提升泵运行状态" },
+    { "id": "blower.aeration", "address": "DB1.DBX1.1", "type": "bool", "access": "r", "desc": "罗茨曝气风机运行状态" },
+    { "id": "pump.sludge", "address": "DB1.DBX1.2", "type": "bool", "access": "r", "desc": "污泥回流泵运行状态" },
+    { "id": "valve.outlet", "address": "DB1.DBX1.3", "type": "bool", "access": "r", "desc": "达标排放电动阀开到位" },
+    { "id": "alarm.high_level", "address": "DB1.DBX1.4", "type": "bool", "access": "r", "desc": "调节池高液位越限报警" },
+    { "id": "tank.reg_level", "address": "DB1.DBD4", "type": "real", "access": "r", "desc": "调节池实时液位 (m)" },
+    { "id": "flow.inlet", "address": "DB1.DBD8", "type": "real", "access": "r", "desc": "进水瞬时流量 (m³/h)" },
+    { "id": "wq.do", "address": "DB1.DBD12", "type": "real", "access": "r", "desc": "好氧池溶解氧 DO (mg/L)" },
+    { "id": "wq.ph", "address": "DB1.DBD16", "type": "real", "access": "r", "desc": "出水 pH 值" },
+    { "id": "wq.cod", "address": "DB1.DBD20", "type": "real", "access": "r", "desc": "出水在线 COD (mg/L)" },
+    { "id": "wq.turbidity", "address": "DB1.DBD24", "type": "real", "access": "r", "desc": "出水浊度 (NTU)" },
+    { "id": "blower.hz", "address": "DB1.DBD28", "type": "real", "access": "r", "desc": "曝气风机变频频率 (Hz)" },
+    { "id": "prod.daily_m3", "address": "DB1.DBD32", "type": "int32", "access": "r", "desc": "今日累计处理水量 (m³)" },
+    { "id": "sys.power_kw", "address": "DB1.DBD36", "type": "real", "access": "r", "desc": "全厂实时总功率 (kW)" }
+  ],
+  "bindings": [
+    { "tag": "pump.infeed", "object": "infeedPump", "property": "running" },
+    { "tag": "blower.aeration", "object": "aerationBlower", "property": "running" },
+    { "tag": "tank.reg_level", "object": "regTank", "property": "level" }
+  ]
+}

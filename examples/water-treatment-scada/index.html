@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>智慧水务与污水处理 SCADA · 2.5D 工艺监控</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <nav class="nav-rail" aria-label="主视图切换">
+      <div class="rail-logo">H2O</div>
+      <button class="rail-btn active" data-view="twin" title="2.5D 工艺流程监控" aria-label="2.5D 工艺流程监控">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="tags" title="I/O 点表监视器" aria-label="I/O 点表监视器">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="trends" title="水质趋势与能耗" aria-label="水质趋势与能耗">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 12h4l3-7 4 14 3-7h4"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="devices" title="设备与数据管理" aria-label="设备与数据管理">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><circle cx="7" cy="7" r="1"/><circle cx="7" cy="17" r="1"/>
+        </svg>
+      </button>
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" id="btnOpenConn" title="连接工业设备" aria-label="连接工业设备">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </nav>
+
+    <header class="topbar">
+      <div class="top-left">
+        <span class="line-title">智慧水务 · A2O+超滤污水处理厂 2.5D SCADA</span>
+        <span class="conn-status">
+          <span id="connDot" class="status-dot"></span>
+          <span id="connText">离线自主仿真 · 100 ms</span>
+        </span>
+      </div>
+      <div class="top-right">
+        <div class="kpi-bar">
+          <div class="kpi-cell"><span>今日处理量</span><strong id="kpiDaily">2,480 m³</strong></div>
+          <div class="kpi-cell"><span>出水 COD</span><strong id="kpiCod" style="color:var(--ok);">28.6 mg/L</strong></div>
+          <div class="kpi-cell"><span>出水标准</span><strong style="color:var(--ok);">一级 A 达标</strong></div>
+        </div>
+        <div class="seg-switch" role="tablist" aria-label="运行模式">
+          <button id="modeOffline" class="seg-btn active" role="tab" aria-selected="true">离线仿真</button>
+          <button id="modeOnline" class="seg-btn" role="tab" aria-selected="false">连接设备</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-area">
+      <!-- View 1: 2.5D Process Twin -->
+      <section id="view-twin" class="view-pane active">
+        <canvas id="isoCanvas" aria-label="A2O 污水处理工艺 2.5D 数字孪生画布"></canvas>
+
+        <div class="cmd-toolbar">
+          <button id="btnAuto" class="btn ok">全厂自动运行</button>
+          <button id="btnStop" class="btn danger">有序停机</button>
+          <div class="toolbar-sep"></div>
+          <button id="btnBackwash" class="btn">超滤反洗</button>
+          <button id="btnDosing" class="btn">PAC 加药</button>
+        </div>
+
+        <aside class="wq-hud" aria-label="出水水质在线指标">
+          <div class="hud-head">
+            <strong>在线水质监测 (一级A)</strong>
+            <span>PASS</span>
+          </div>
+          <div class="kv-list">
+            <div class="kv-row"><span>在线 COD (DB1.DBD20)</span><strong id="valCod">28.6 mg/L</strong></div>
+            <div class="kv-row"><span>好氧池 DO (DB1.DBD12)</span><strong id="valDo">2.45 mg/L</strong></div>
+            <div class="kv-row"><span>出水 pH 值 (DB1.DBD16)</span><strong id="valPh">7.18</strong></div>
+            <div class="kv-row"><span>出水浊度 (DB1.DBD24)</span><strong id="valTurb">0.82 NTU</strong></div>
+          </div>
+        </aside>
+
+        <div class="telemetry-dock">
+          <div class="dock-cell">
+            <div class="dock-head"><span>1# 提升泵</span><span class="dock-addr">DB1.DBX1.0</span></div>
+            <div class="dock-val"><span id="indPump" class="ind ok"></span><span id="valPump">运行中</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>调节池液位</span><span class="dock-addr">DB1.DBD4</span></div>
+            <div class="dock-val"><span class="ind active"></span><span id="valLevel">3.42 m</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>进水瞬时流量</span><span class="dock-addr">DB1.DBD8</span></div>
+            <div class="dock-val"><span id="valFlow">128.4 m³/h</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>罗茨曝气风机</span><span class="dock-addr">DB1.DBD28</span></div>
+            <div class="dock-val"><span id="indBlower" class="ind ok"></span><span id="valBlower">42.5 Hz</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>全厂实时功耗</span><span class="dock-addr">DB1.DBD36</span></div>
+            <div class="dock-val"><span id="valPower">68.4 kW</span></div>
+          </div>
+          <div class="dock-cell">
+            <div>
+              <div class="dock-head"><span>日处理水量</span></div>
+              <div class="dock-val" style="margin-top:2px;"><span id="valDaily">2,480</span><small style="font-size:11px;color:var(--muted);font-weight:400;">m³</small></div>
+            </div>
+            <svg viewBox="0 0 110 34" width="110" height="34">
+              <path d="M2,25 L18,22 L34,20 L50,16 L66,18 L82,12 L98,13 L108,9" fill="none" stroke="#0369a1" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Multi-Protocol Tag Table -->
+      <section id="view-tags" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>水务全厂 I/O 信号实时监视表</h2>
+            <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、设备或地址…" />
+          </div>
+          <table class="data-table">
+            <thead><tr><th>Tag ID</th><th>所属设备</th><th>协议地址</th><th>类型</th><th>方向</th><th>当前值</th><th>说明</th></tr></thead>
+            <tbody id="tagTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- View 3: Water Quality Trends -->
+      <section id="view-trends" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>出水 COD / 溶解氧 DO 实时趋势曲线</h2>
+            <span class="mono" style="font-size:12px;color:var(--muted);">国标一级 A 限值：COD ≤ 50 mg/L</span>
+          </div>
+          <div class="trend-grid">
+            <div class="trend-box wide">
+              <h3>出水在线 COD (mg/L) 实时监控波形</h3>
+              <canvas id="trendCanvas" width="1100" height="260" style="width:100%;height:260px;"></canvas>
+            </div>
+            <div class="trend-box">
+              <h3>吨水电耗指标</h3>
+              <div class="mono" style="font-size:28px;font-weight:600;color:var(--active);">0.53 kWh/m³</div>
+            </div>
+            <div class="trend-box">
+              <h3>水质达标率 (月度)</h3>
+              <div class="mono" style="font-size:28px;font-weight:600;color:var(--ok);">100.0 %</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Device & Data Management -->
+      <section id="view-devices" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>多协议设备接入与点位管理</h2>
+            <button id="btnExportManifest" class="btn ok">导出 twin.manifest.json</button>
+          </div>
+          <div class="mgr-grid">
+            <div class="mgr-panel">
+              <div class="mgr-panel-head"><h3>已配置水务设备</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="devCountBadge">4 台设备</span></div>
+              <div id="deviceList" class="device-list"></div>
+            </div>
+            <div class="mgr-panel">
+              <div class="mgr-panel-head"><h3>数据点位映射与新增</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="tagCountBadge">18 个点位</span></div>
+              <div class="tag-add-bar">
+                <input id="newTagId" class="mini-input" placeholder="Tag ID" />
+                <select id="newTagDev" class="mini-input"></select>
+                <input id="newTagAddr" class="mini-input" placeholder="地址 (如 40001 / DB1.DBD40)" />
+                <select id="newTagType" class="mini-input"><option value="bool">bool</option><option value="int16">int16</option><option value="real">real</option></select>
+                <select id="newTagAccess" class="mini-input"><option value="r">R</option><option value="w">W</option><option value="rw">RW</option></select>
+                <button id="btnAddTag" class="btn ok">添加</button>
+              </div>
+              <table class="data-table" style="margin-top:12px;">
+                <thead><tr><th>Tag ID</th><th>设备</th><th>地址</th><th>类型</th><th>方向</th><th>操作</th></tr></thead>
+                <tbody id="mgrTagBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Multi-Protocol Modal with RS-485 Auto-Detect -->
+  <div id="connModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>一键连接 PLC / 水务设备</h3>
+      <div class="preset-grid">
+        <button type="button" class="btn" data-preset="s7">西门子 S7 (实体 / 仿真)</button>
+        <button type="button" class="btn" data-preset="mc">三菱 MC (5000)</button>
+        <button type="button" class="btn" data-preset="modbus-tcp">Modbus TCP (502)</button>
+        <button type="button" class="btn" data-preset="modbus-rtu">RS-485 串口 (COM3)</button>
+      </div>
+      <label class="field">通信协议驱动
+        <select id="connProtocol">
+          <option value="s7">Siemens S7comm (1200 / 1500 / PLCSIM)</option>
+          <option value="mc">三菱 MC (QnA 3E · 端口 5000)</option>
+          <option value="fins">欧姆龙 FINS/TCP (端口 9600)</option>
+          <option value="modbus-tcp">Modbus TCP (变频器 / 端口 502)</option>
+          <option value="modbus-rtu">Modbus RTU (RS-485 水质仪表)</option>
+          <option value="mqtt">MQTT 3.1.1 (云边网关 · 1883)</option>
+          <option value="tcp-raw">Raw TCP/IP Socket</option>
+        </select>
+      </label>
+      <label class="field" id="ipFieldWrap">设备 IP 地址
+        <input id="connEndpoint" value="192.168.0.10" spellcheck="false" />
+      </label>
+      <div id="rtuFieldWrap" style="display:none;flex-direction:column;gap:8px;">
+        <label class="field">选择串口 (COM)
+          <div style="display:flex;gap:6px;">
+            <select id="rtuPortSelect" style="flex:1;"><option value="COM3">COM3 (默认)</option></select>
+            <button type="button" id="btnScanPorts" class="btn">识别串口</button>
+          </div>
+        </label>
+        <label class="field">波特率
+          <select id="rtuBaudSelect">
+            <option value="9600">9600 bps</option>
+            <option value="19200">19200 bps</option>
+            <option value="115200" selected>115200 bps</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">扫描周期
+        <select id="connPoll"><option value="100" selected>100 ms (10 Hz)</option><option value="50">50 ms (20 Hz)</option></select>
+      </label>
+      <div class="modal-actions">
+        <button id="btnCloseModal" class="btn">取消</button>
+        <button id="btnConfirmConn" class="btn ok">一键连接</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="tia-twin-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
