@@ -393,14 +393,18 @@ class S7Backend(BaseProtocolBackend):
                 db = tag.db
                 byte = tag.byte
                 if tag.type == "bool":
-                    cur = await asyncio.to_thread(self.client.read_area, area, db, byte, 1)
-                    b = cur[0]
                     bit = tag.bit if tag.bit is not None else 0
-                    if value:
-                        b |= (1 << bit)
-                    else:
-                        b &= ~(1 << bit)
-                    await asyncio.to_thread(self.client.write_area, area, db, byte, bytearray([b]))
+                    bit_addr = byte * 8 + bit
+                    try:
+                        await asyncio.to_thread(self.client.write_area, area, db, bit_addr, bytearray([1 if value else 0]), 1)
+                    except TypeError:
+                        cur = await asyncio.to_thread(self.client.read_area, area, db, byte, 1)
+                        b = cur[0]
+                        if value:
+                            b |= (1 << bit)
+                        else:
+                            b &= ~(1 << bit)
+                        await asyncio.to_thread(self.client.write_area, area, db, byte, bytearray([b]))
                 elif tag.type == "byte":
                     await asyncio.to_thread(self.client.write_area, area, db, byte, bytearray([int(value) & 0xFF]))
                 elif tag.type in ("int16", "uint16"):
