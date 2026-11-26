@@ -107,10 +107,18 @@
         };
         const cli = new window.TiaTwinClient({ manifest: miniManifest, url: 'ws://127.0.0.1:8765/ws', autoReconnect: false });
         cli.on('status', (s) => {
-          if (s && s.state === 'connected') {
+          if (s && s.state === 'online') {
+            cli.plcConfigure({ protocol: proto, ip: ep.split(':')[0], rack: 0, slot: 1, pollMs: Number(poll) }).catch(() => {});
+          }
+        });
+        cli.on('plc', (p) => {
+          if (!p) return;
+          if (p.state === 'connected') {
             document.getElementById('connDot').className = 'status-dot';
             document.getElementById('connText').textContent = `已连通 [${proto}] · ${ep} (${poll} ms)`;
-            cli.plcConfigure({ protocol: proto, ip: ep.split(':')[0], pollMs: Number(poll) }).catch(() => {});
+          } else if (p.state === 'error') {
+            document.getElementById('connDot').className = 'status-dot danger';
+            document.getElementById('connText').textContent = `连接失败: ${p.message || ep}`;
           }
         });
         cli.connect();
