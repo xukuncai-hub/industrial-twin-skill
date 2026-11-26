@@ -1000,7 +1000,6 @@ class McProtocolBackend(BaseProtocolBackend):
 
     async def _mc_cmd(self, cmd: int, subcmd: int, payload: bytes) -> bytes:
         body = struct.pack("<HH", cmd, subcmd) + payload
-        hdr = struct.pack("<5sH", b"\x50\x00\x00\xFF\xFF\x03\x00"[:5], 0)  # placeholder
         # Standard 3E binary request header: 50 00 | 00 | FF | FF 03 | 00 | len(2) | timer(2)
         frame = b"\x50\x00\x00\xFF\xFF\x03\x00" + struct.pack("<HH", len(body) + 2, 0x0010) + body
         self.writer.write(frame)

@@ -55,24 +55,6 @@
   --danger: #dc2626;
 }
 
-[data-theme="dark-control"] {
-  --bg: #0e131b;
-  --bg-grad: radial-gradient(ellipse at 52% 45%, #172131 0%, #0e131b 70%, #090d13 100%);
-  --rail-bg: rgba(12, 17, 25, 0.96);
-  --surface: rgba(20, 27, 39, 0.86);
-  --surface-solid: #141b27;
-  --surface-hover: rgba(30, 41, 59, 0.72);
-  --line: rgba(255, 255, 255, 0.09);
-  --line-strong: rgba(255, 255, 255, 0.16);
-  --fg: #eef2f6;
-  --muted: #8b98a9;
-  --dim: #5c6878;
-  --ok: #10b981;
-  --active: #38bdf8;
-  --warn: #f59e0b;
-  --danger: #ef4444;
-}
-
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 html, body {
