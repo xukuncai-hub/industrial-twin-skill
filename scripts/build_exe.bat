@@ -4,9 +4,9 @@ setlocal
 cd /d "%~dp0"
 title 构建 TIAWebTwin.exe
 echo ==============================================
-echo   构建 Windows 单文件 exe（开发者一次性执行）
-echo   产物：dist\TIAWebTwin.exe
-echo   最终用户双击该 exe 即可，无需 Python/终端
+echo   构建 Windows 绿色免安装 EXE（Win11 24H2 兼容）
+echo   产物：dist\TIAWebTwin\TIAWebTwin.exe
+echo   将 dist\TIAWebTwin 文件夹发给用户即可双击运行
 echo ==============================================
 echo.
 
@@ -34,8 +34,8 @@ if errorlevel 1 goto fail
 
 echo.
 echo ==============================================
-echo 构建完成：dist\TIAWebTwin.exe
-echo 把该 exe 发给最终用户，双击运行即可，无需 Python 环境！
+echo 构建完成：dist\TIAWebTwin\TIAWebTwin.exe
+echo 把 dist\TIAWebTwin 文件夹发给最终用户，双击运行即可！
 echo ==============================================
 pause
 exit /b 0
