@@ -1,7 +1,7 @@
 """
 =============================================================================
 SMT 高速贴片机生产线 · Blender 工业级高保真建模与数字孪生导出脚本
-项目：siemens-s7-web-twin / examples / 贴片机
+项目：industrial-twin-skill / examples / smt-pick-and-place
 =============================================================================
 遵循规范：
 1. 严格契合《references/blender-industrial-modeling.md》六大工业机电建模铁律：
@@ -277,5 +277,5 @@ if __name__ == "__main__":
     gantry, head = build_smt_twin_line()
     add_kinematics_keyframes(gantry, head)
     
-    cur_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in locals() else "D:/Users/song/Desktop/siemens-s7-web-twin/examples/贴片机"
+    cur_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in locals() else os.getcwd()
     export_glb(os.path.join(cur_dir, "smt_line.glb"))

@@ -1,14 +1,14 @@
 <div align="center">
 
-# 🏭 Industrial Web Digital Twin & AI Skill
+# 🏭 Industrial Twin Skill
 
 **给 AI 一份 PLC 点表，自动生成能读能写、双击即开的工业 Web 3D/2D 上位机与数字孪生**
 
-[简体中文](README.md) · [English](README_en.md)
+**简体中文** · [English](README_en.md)
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2ea44f?style=flat-square" alt="License"></a>
-  <img src="https://img.shields.io/badge/AI%20Agent-SKILL.md%20Ready-8A2BE2?style=flat-square" alt="AI Skill">
+  <a href="SKILL.md"><img src="https://img.shields.io/badge/AI%20Agent-SKILL.md%20Ready-8A2BE2?style=flat-square" alt="AI Skill"></a>
   <img src="https://img.shields.io/badge/Siemens-S7--1200%20%7C%201500%20%7C%20300-009999?style=flat-square" alt="Siemens PLC">
   <img src="https://img.shields.io/badge/Protocol-S7%20%7C%20Modbus%20%7C%20RS485%20%7C%20TCP-007ec6?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/3D-HTML%20Native%20%26%20Blender%20GLB-f5792a?style=flat-square" alt="3D Engine">
@@ -16,12 +16,13 @@
 </p>
 
 <p align="center">
+  <a href="#-实机闭环演示">实机演示</a> •
   <a href="#-ai-skill-极速生成">AI 一键生成</a> •
   <a href="#-为什么做这个项目">核心优势</a> •
   <a href="#-统一系统架构">系统架构</a> •
   <a href="#-双建模流派与多协议矩阵">建模与协议</a> •
   <a href="#-快速开始与绿色交付">快速开始</a> •
-  <a href="#-统一-io-契约与目录结构">目录与避坑</a>
+  <a href="#-参考文档与目录结构">文档与结构</a>
 </p>
 
 </div>
@@ -34,22 +35,21 @@
 > **不是“自己转圈的假动画”**——前端严格遵循工业 I/O 契约：PLC 输出 `1` 则动、`0` 则停；支持**网页/手机反向写入 PLC**，且 3D 物料触发虚拟光电后自动向 PLC 回写传感器信号。
 
 <div align="center">
-  <!-- 建议：录一段 8~10 秒“左博途监控 + 右 Web 3D 联动/反控”的高清 GIF（压到 5MB 以内）后取消下方注释 -->
-  <!-- <img src="assets/demo-live.gif" width="90%" alt="TIA Portal 与 Web 3D 实时闭环联动演示" /> -->
-
-  <img src="assets/smt-pick-and-place-preview.png" width="90%" alt="SMT 高速贴片机生产线 Web 3D 数字孪生与工业上位机" />
+  <a href="examples/smt-pick-and-place">
+    <img src="examples/smt-pick-and-place/preview.png" width="92%" alt="SMT 高速贴片机生产线 Web 3D 数字孪生与工业上位机" />
+  </a>
   <br/>
-  <sub>▲ 典型落地案例：SMT 高速贴片生产线 Web 3D 数字孪生与工业上位机（完整源码见 <a href="examples/贴片机"><code>examples/贴片机</code></a>）</sub>
+  <sub>▲ 典型落地案例：SMT 高速贴片生产线 Web 3D 数字孪生与工业上位机（完整源码与说明见 <a href="examples/smt-pick-and-place"><code>examples/smt-pick-and-place</code></a>）</sub>
 </div>
 
 ---
 
 ## 🤖 AI Skill 极速生成
 
-本仓库内置标准化的 **[`SKILL.md`](SKILL.md)**（含 18 条工业级工程红线与标准 SOP），遵循 Antigravity / Cursor / Claude Code / Qoder 的 Skill 规范：
+本仓库内置标准化的 **[`SKILL.md`](SKILL.md)**（含工业级工程红线与标准 SOP），遵循 Antigravity / Cursor / Claude Code / Qoder 的 Skill 规范：
 
-- **全局挂载**：`~/.gemini/config/skills/siemens-s7-web-twin` 或 `~/.agents/skills/`
-- **工作区挂载**：`.agents/skills/siemens-s7-web-twin`
+- **全局挂载**：`~/.gemini/config/skills/industrial-twin-skill` 或 `~/.agents/skills/industrial-twin-skill`
+- **工作区挂载**：`.agents/skills/industrial-twin-skill`
 
 挂载或直接将仓库引入 AI 编程工具后，发送需求或点表即可自动完成**网关配置 + 博途 SCL 生成 + 前端建模**：
 
@@ -59,13 +59,13 @@
 2. PLC IP：192.168.0.1，DB1 点表如下：
    - DB1.DBX0.0：系统启动（读写）
    - DB1.DBX0.1：传送带运行（只读）
-   - DB1.DBX0.2：光电传感器 PE1（网页物理引擎触发后回写 PLC）
+   - DB1.DBX1.0：光电传感器 PE1（网页物理引擎触发后回写 PLC）
    - DB1.DBD4：实时产量计数（只读）
 3. 同步生成可直接导入博途的 TwinIO.scl 与 TwinDemoLogic.scl。
 ```
 
 > [!IMPORTANT]
-> 交付给客户或答辩演示时，**对方电脑无需安装 Python / Node.js，也无需敲一行命令行**——工程目录自带 ~20MB 绿色便携运行时，双击桌面图标即可离线运行。
+> 交付给客户或答辩演示时，**对方电脑无需安装 Python / Node.js，也无需敲一行命令行**——工程目录自带便携绿色运行时，双击桌面图标即可离线运行。
 
 ---
 
@@ -77,7 +77,7 @@
 | **建模效率** | AI 手搓粗糙积木块，或 CAD 导出几百万面卡死浏览器 | **双轨并行**：`HTML 原生代码秒开` 或 `Blender 工业级 PBR (.glb)` 全面替代重型 CAD |
 | **通信协议** | 绑死单一厂商，或依赖笨重的商业 OPC UA 套件 | **原生多协议解耦**：S7comm / Modbus TCP / RTU (RS-485) / Raw TCP，支持 AI 10 分钟扩展新协议 |
 | **双向联动** | 只读展示，改个点表前后端全部返工 | **五合一统一契约**：一份 `twin.manifest.json` 自动生成博途 DB 块、闭环 SCL、网关映射与前端绑定 |
-| **现场交付** | 客户电脑装环境、配依赖、Win11 报毒拦截 | **极简绿色交付**：内置 ~20MB 便携 Python，纯 ASCII 脚本兼容 Win11 24H2，双击静默常驻 |
+| **现场交付** | 客户电脑装环境、配依赖、Win11 报毒拦截 | **极简绿色交付**：内置便携 Python 运行时，纯 ASCII 脚本兼容 Win11 24H2，双击静默常驻 |
 
 ---
 
@@ -100,7 +100,7 @@ graph LR
         direction TB
         WS["WebSocket JSON<br/>(差量广播 / 双向反控)"]
         Base["BaseProtocolBackend<br/>(统一异步驱动基类)"]
-        D1["S7comm<br/>(1200/1500/300)"]
+        D1["S7comm<br/>(1200 / 1500 / 300)"]
         D2["Modbus TCP<br/>(纯 Python 零依赖)"]
         D3["Modbus RTU<br/>(RS-485 串口)"]
         D4["Raw TCP/IP<br/>(流式套接字)"]
@@ -167,8 +167,8 @@ python scripts/inspect_glb.py assets/models/my_line.glb
 
 ```bash
 # 克隆仓库
-git clone https://github.com/xukuncai-hub/siemens-s7-web-twin.git
-cd siemens-s7-web-twin
+git clone https://github.com/xukuncai-hub/industrial-twin-skill.git
+cd industrial-twin-skill
 
 # 模式 A：Blender 高保真 3D 工程（推荐现场交付）
 python scripts/make_project.py --out ./my-sorting-line --mode blender
@@ -193,7 +193,16 @@ python scripts/make_project.py --out ./my-sorting-line --mode html
 
 ---
 
-## 📦 统一 I/O 契约与目录结构
+## 📚 参考文档与目录结构
+
+| 规范文档 | 说明 |
+| :--- | :--- |
+| [`references/contract.md`](references/contract.md) | `tia-web-twin/1` WebSocket 通信协议与 I/O 契约规范 |
+| [`references/blender-industrial-modeling.md`](references/blender-industrial-modeling.md) | Blender 工业级机电建模六大铁律与 `.glb` 导出规范 |
+| [`references/cad-import-guide.md`](references/cad-import-guide.md) | 外部 3D CAD 资产轻量化导入与节点绑定指南 |
+| [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) | `BaseProtocolBackend` 多协议扩展开发指南 |
+| [`references/tia-setup-guide.md`](references/tia-setup-guide.md) | 实体 PLC 与 PLCSIM Advanced 博途联调指南 |
+| [`references/deployment.md`](references/deployment.md) | 绿色便携打包与 Windows 11 24H2 部署避坑说明 |
 
 <details>
 <summary><b>👉 点击展开：“五合一”工业契约体系说明</b></summary>
@@ -207,32 +216,32 @@ python scripts/make_project.py --out ./my-sorting-line --mode html
 </details>
 
 <details>
-<summary><b>👉 点击展开：完整项目目录结构</b></summary>
+<summary><b>👉 点击展开：完整仓库目录结构</b></summary>
 
 ```text
-siemens-s7-web-twin/
-├── SKILL.md                      # AI Agent Skill 核心规范、18 大硬性红线与标准 SOP
-├── README.md / README_en.md      # 中英文项目文档
+industrial-twin-skill/
+├── SKILL.md                          # AI Agent Skill 核心规范、工程红线与标准 SOP
+├── README.md / README_en.md          # 中英文项目文档
 ├── examples/
-│   └── 贴片机/                    # SMT 高速贴片机完整落地示例 (3D / 上位机 / Blender / SCL / 网关)
-├── references/                   # Blender 工业建模、CAD 导入、协议扩展、WS 契约与部署文档
+│   └── smt-pick-and-place/           # SMT 高速贴片机完整落地示例 (3D / 上位机 / Blender / SCL / 网关)
+├── references/                       # 建模、CAD 导入、协议扩展、WS 契约、博途与部署指南
 ├── scripts/
-│   ├── make_project.py           # 一键脚手架（装配工程 + 便携运行时）
-│   ├── inspect_glb.py            # 零依赖 .glb 节点解析与 bindings 自动生成
-│   ├── tia_gateway.py            # 多协议高性能通信网关 (S7 / Modbus / Raw TCP)
-│   ├── generate_scl.py           # 从 manifest 一键生成博途 DB 与控制逻辑 SCL
-│   ├── validate_manifest.py      # 信号清单语法与地址对齐校验
-│   ├── run_twin.py               # 服务管理与浏览器自动唤起
-│   ├── desktop_app.py            # 独立桌面客户端入口
+│   ├── make_project.py               # 一键脚手架（装配工程 + 便携运行时 + 桌面快捷方式生成）
+│   ├── inspect_glb.py                # 零依赖 .glb 节点解析与 bindings 自动生成
+│   ├── tia_gateway.py                # 多协议高性能通信网关 (S7 / Modbus / Raw TCP)
+│   ├── generate_scl.py               # 从 manifest 一键生成博途 DB 与控制逻辑 SCL
+│   ├── validate_manifest.py          # 信号清单语法与地址对齐校验
+│   ├── run_twin.py                   # 服务管理与浏览器自动唤起
+│   ├── desktop_app.py                # 独立桌面客户端入口
 │   ├── start.bat / start_silent.bat / stop.bat / make_shortcut.bat
-│   ├── start_twin.bat / .sh / .desktop
-│   ├── build_exe.bat             # PyInstaller 独立 EXE 打包脚本
-│   └── requirements.txt          # Python 依赖清单
+│   ├── start_twin.bat / start_twin.sh
+│   ├── build_exe.bat / tia_twin.spec # PyInstaller 独立 EXE 打包脚本
+│   └── requirements.txt              # Python 依赖清单
 └── assets/
-    ├── runtime/                  # 内置免安装 Python 3.11 运行时 (portable-runtime.zip) 与前端 SDK
-    ├── template/                 # HTML 原生纯代码建模模板
-    ├── three-demo/               # Blender 工业建模 WebGL 模板（含离线 Three.js & GLTFLoader）
-    └── tia/                      # TwinIO.scl 与 TwinDemoLogic.scl 模板
+    ├── runtime/                      # 内置免安装 Python 3.11 运行时 (portable-runtime.zip) 与前端 SDK
+    ├── template/                     # HTML 原生纯代码建模模板
+    ├── three-demo/                   # Blender 工业建模 WebGL 模板（含离线 Three.js & GLTFLoader）
+    └── tia/                          # TwinIO.scl 与 TwinDemoLogic.scl 模板
 ```
 
 </details>
@@ -254,7 +263,7 @@ siemens-s7-web-twin/
 ## 🤝 交流与支持
 
 如果这个项目帮你省掉了画组态的时间、或者让你的毕设/项目顺畅跑通了闭环，欢迎点一个免费的 **⭐ Star**！  
-遇到协议对接问题或想扩展新 PLC 驱动，欢迎直接提交 [Issue](https://github.com/xukuncai-hub/siemens-s7-web-twin/issues) 或 PR。
+遇到协议对接问题或想扩展新 PLC 驱动，欢迎直接提交 [Issue](https://github.com/xukuncai-hub/industrial-twin-skill/issues) 或 PR。
 
 <div align="center">
   <sub>Released under the <a href="LICENSE">MIT License</a>.</sub>

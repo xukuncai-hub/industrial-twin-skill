@@ -4,10 +4,10 @@
   <b>[ 简体中文 ]</b> &nbsp;|&nbsp; <a href="README_en.md"><b>[ English ]</b></a>
 </p>
 
-> 本示例位于 `siemens-s7-web-twin/examples/贴片机`，是遵循本项目标准架构（I/O 信号契约、动静分离、零穿模、多协议网关）打造的**工业级贴片机产线完整数字孪生应用**。
+> 本示例位于 `industrial-twin-skill/examples/smt-pick-and-place`，是遵循本项目标准架构（I/O 信号契约、动静分离、零穿模、多协议网关）打造的**工业级贴片机产线完整数字孪生应用**。
 
 <div align="center">
-  <img src="preview.png" width="96%" alt="SMT 高速贴片机生产线数字孪生上位机运行实测" style="border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
+  <img src="preview.png" width="96%" alt="SMT 高速贴片机生产线数字孪生上位机运行实测" />
   <p><em>▲ SMT 高速贴片机生产线数字孪生与工业上位机实测运行界面</em></p>
 </div>
 

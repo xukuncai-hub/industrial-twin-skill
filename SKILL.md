@@ -1,5 +1,5 @@
 ---
-name: siemens-s7-web-twin
+name: industrial-twin-skill
 description: 生成可直接连接工业硬件与仿真器的网页产线数字孪生。原生多协议支持（西门子 S7-1200/1500/300 S7comm、Modbus TCP、Modbus RTU RS-485、Raw TCP/IP Socket）及 AI 自主扩展新协议驱动（三菱MC/欧姆龙FINS/MQTT）。支持 HTML 原生建模与 Blender 工业级轻量化建模（全面替代 Siemens NX/SolidWorks）。通过固定 twin.manifest.json 契约、浏览器 WebSocket SDK 和统一网关，把网页传感器回写给真实下位机。触发词：数字孪生、产线仿真、真实PLC、实体PLC、S7-1200、S7-1500、PLCSIM Advanced、博途仿真、S7comm、虚拟调试、Modbus、Modbus-TCP、Modbus-RTU、RS485、TCPIP、三菱MC、欧姆龙FINS、多工业协议、Blender、Blender工业建模、Blender替代CAD、Blender替代NX、Blender数字孪生、GLTF模型绑定、GLB导入。
 ---
 

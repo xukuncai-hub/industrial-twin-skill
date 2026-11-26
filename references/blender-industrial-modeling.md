@@ -43,7 +43,7 @@
 
 ## 3. 六大工业机电建模铁律 (Hard Rules)
 
-为了确保导出的 `.glb` 模型能被 `siemens-s7-web-twin` 前端框架与 PLC 信号无缝驱动，必须在 Blender 中遵守以下六大铁律：
+为了确保导出的 `.glb` 模型能被 `industrial-twin-skill` 前端框架与 PLC 信号无缝驱动，必须在 Blender 中遵守以下六大铁律：
 
 ### 铁律 1：严格执行动静分离 (Static vs Dynamic Hierarchy)
 * **静态构件必须合并 (Merge)**：

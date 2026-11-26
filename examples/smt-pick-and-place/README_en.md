@@ -4,10 +4,10 @@
   <a href="README.md"><b>[ 简体中文 ]</b></a> &nbsp;|&nbsp; <b>[ English ]</b>
 </p>
 
-> Located at `siemens-s7-web-twin/examples/贴片机`, this example is a **production-grade industrial digital twin** developed strictly adhering to this project's standard architecture (I/O signal contracts, static/dynamic hierarchy, zero-clipping kinematics, multi-protocol gateway).
+> Located at `industrial-twin-skill/examples/smt-pick-and-place`, this example is a **production-grade industrial digital twin** developed strictly adhering to this project's standard architecture (I/O signal contracts, static/dynamic hierarchy, zero-clipping kinematics, multi-protocol gateway).
 
 <div align="center">
-  <img src="preview.png" width="96%" alt="SMT Pick and Place Production Line Digital Twin SCADA Live Screenshot" style="border-radius: 8px; box-shadow: 0 8px 32px rgba(0,0,0,0.5);" />
+  <img src="preview.png" width="96%" alt="SMT Pick and Place Production Line Digital Twin SCADA Live Screenshot" />
   <p><em>▲ Live SCADA Dashboard & 3D Digital Twin for SMT High-Speed Production Line</em></p>
 </div>
 
