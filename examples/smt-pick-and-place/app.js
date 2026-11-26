@@ -56,8 +56,8 @@
 
   const modal = document.getElementById('connModal');
   const presets = {
-    's7-1500': { proto: 's7', ep: '192.168.0.10', poll: '100' },
-    'plcsim': { proto: 's7', ep: '192.168.0.1', poll: '100' },
+    's7': { proto: 's7', ep: '192.168.0.1', poll: '100' },
+    'mc': { proto: 'mc', ep: '192.168.0.20:5000', poll: '100' },
     'modbus-tcp': { proto: 'modbus-tcp', ep: '192.168.0.21:502', poll: '100' },
     'modbus-rtu': { proto: 'modbus-rtu', ep: 'COM3', poll: '100' }
   };

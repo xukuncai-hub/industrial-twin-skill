@@ -312,8 +312,8 @@
   document.querySelectorAll('[data-preset]').forEach((btn) => {
     btn.addEventListener('click', () => {
       const k = btn.dataset.preset;
-      if (k === 's7-1500') { protoSel.value = 's7'; document.getElementById('plcIp').value = '192.168.0.10'; }
-      else if (k === 'plcsim') { protoSel.value = 's7'; document.getElementById('plcIp').value = '192.168.0.1'; }
+      if (k === 's7') { protoSel.value = 's7'; document.getElementById('plcIp').value = '192.168.0.1'; }
+      else if (k === 'mc') { protoSel.value = 'mc'; }
       else if (k === 'modbus-tcp') { protoSel.value = 'modbus-tcp'; document.getElementById('mbIp').value = '192.168.0.21'; }
       else if (k === 'modbus-rtu') { protoSel.value = 'modbus-rtu'; document.getElementById('rtuPort').value = 'COM3'; }
       syncProtoFields();
