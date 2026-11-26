@@ -180,9 +180,12 @@ python scripts/inspect_glb.py assets/models/my_line.glb
 | :--- | :--- | :--- |
 | **西门子 S7comm** | `s7` | 支持 S7-1200 / 1500 / 300 / 400 及 **PLCSIM Advanced**；穿透非优化 `DB`、`%I`、`%Q`、`%M`、16 位模拟量（`IW/QW/MW`）与 32 位浮点（`MD/DBD`）；底层按 `(area, db)` 自动合并连续块，实现 **10~30Hz** 高频刷新 |
 | **Modbus TCP** | `modbus-tcp` | 纯 Python 异步实现、**零第三方依赖**，原生支持 `0x / 1x / 3x / 4x` 线圈与寄存器 |
-| **Modbus RTU** | `modbus-rtu` | 支持 RS-485 串口参数配置（波特率/站号/校验），直连变频器与现场仪表 |
+| **Modbus RTU** | `modbus-rtu` | 支持 RS-485 串口参数配置与 CRC16 帧收发，直连变频器与现场仪表 |
+| **三菱 MC** | `mc` | 纯 Python 原生支持 QnA 3E Binary (端口 `5000`)，直连 FX5U / Q / iQ-R (`D/M/X/Y`) |
+| **欧姆龙 FINS** | `fins` | 纯 Python 原生支持 FINS/TCP (端口 `9600`)，直连 CP1H / CJ2M / NX1P (`DM/CIO/WR/HR`) |
+| **MQTT 3.1.1** | `mqtt` | 零第三方依赖轻量客户端 (端口 `1883`)，Tag 地址直接映射 Topic |
 | **Raw TCP/IP** | `tcp-raw` | 支持二进制流与定界符切包，直连工业扫码枪、视觉相机及 ESP32/STM32 等自研板卡 |
-| **AI 自主扩展** | 自定义 | 遵循 [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) 继承 `BaseProtocolBackend`，实现 4 个异步接口即可在 10 分钟内接入三菱 MC、欧姆龙 FINS、MQTT 或 Beckhoff ADS |
+| **AI 自主扩展** | 自定义 | 遵循 [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) 继承 `BaseProtocolBackend`，即可扩展 Beckhoff ADS / EtherNet/IP 等私有协议 |
 
 ---
 

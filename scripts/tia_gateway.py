@@ -491,11 +491,52 @@ class ModbusTcpBackend(BaseProtocolBackend):
     async def read_all(self) -> dict[str, Any]:
         if not await self.ensure_connected():
             raise RuntimeError(self.last_error or "Modbus TCP 未连接")
-        out = {}
+        out: dict[str, Any] = {}
         async with self.lock:
+            word_groups: dict[tuple[int, str], list[Tag]] = {}
+            other_tags: list[Tag] = []
             for t in self.manifest.tags.values():
                 if not t.readable:
                     continue
+                area = t.area or "hr"
+                if area in ("ir", "hr") and t.reg is not None:
+                    slave = t.slave_id or self.slave_id
+                    word_groups.setdefault((slave, area), []).append(t)
+                else:
+                    other_tags.append(t)
+
+            # 合并连续寄存器块批量读取 (每次最多 120 words)
+            for (slave, area), group in word_groups.items():
+                group.sort(key=lambda x: x.reg or 1)
+                fc = 4 if area == "ir" else 3
+                i = 0
+                while i < len(group):
+                    start_reg = max(0, (group[i].reg or 1) - 1)
+                    end_reg = start_reg + (2 if group[i].size == 4 else 1)
+                    batch = [group[i]]
+                    j = i + 1
+                    while j < len(group):
+                        r = max(0, (group[j].reg or 1) - 1)
+                        r_end = r + (2 if group[j].size == 4 else 1)
+                        if r <= end_reg and (r_end - start_reg) <= 120:
+                            end_reg = max(end_reg, r_end)
+                            batch.append(group[j])
+                            j += 1
+                        else:
+                            break
+                    try:
+                        resp = await self._send_modbus(fc, struct.pack(">HH", start_reg, end_reg - start_reg), slave)
+                        reg_bytes = resp[1:]
+                        for t in batch:
+                            off = (max(0, (t.reg or 1) - 1) - start_reg) * 2
+                            val = self._decode_word_bytes(t, reg_bytes[off:])
+                            if val is not None:
+                                out[t.id] = val
+                    except Exception as exc:
+                        LOG.debug("Modbus TCP 批量读取失败 (%s:%d): %s", area, start_reg, exc)
+                    i = j
+
+            for t in other_tags:
                 try:
                     val = await self._read_tag(t)
                     if val is not None:
@@ -503,6 +544,24 @@ class ModbusTcpBackend(BaseProtocolBackend):
                 except Exception as exc:
                     LOG.debug("读取 tag %s 失败: %s", t.id, exc)
         return out
+
+    @staticmethod
+    def _decode_word_bytes(tag: Tag, reg_bytes: bytes) -> Any:
+        if tag.type == "bool":
+            bit = tag.bit if tag.bit is not None else 0
+            word = struct.unpack(">H", reg_bytes[:2])[0]
+            return bool((word >> bit) & 1)
+        elif tag.type == "int16":
+            return struct.unpack(">h", reg_bytes[:2])[0]
+        elif tag.type in ("uint16", "byte"):
+            return struct.unpack(">H", reg_bytes[:2])[0]
+        elif tag.type == "int32":
+            return struct.unpack(">i", reg_bytes[:4])[0]
+        elif tag.type == "uint32":
+            return struct.unpack(">I", reg_bytes[:4])[0]
+        elif tag.type == "real":
+            return round(struct.unpack(">f", reg_bytes[:4])[0], 4)
+        return None
 
     async def _read_tag(self, tag: Tag) -> Any:
         area = tag.area or "hr"
@@ -621,15 +680,85 @@ class ModbusRtuBackend(BaseProtocolBackend):
             LOG.warning("串口连接失败: %s", exc)
         return self.connected
 
+    @staticmethod
+    def _crc16(frame: bytes) -> bytes:
+        crc = 0xFFFF
+        for b in frame:
+            crc ^= b
+            for _ in range(8):
+                crc = (crc >> 1) ^ 0xA001 if (crc & 1) else (crc >> 1)
+        return struct.pack("<H", crc)
+
+    def _send_rtu_sync(self, fc: int, data: bytes, slave: int) -> bytes:
+        pdu = struct.pack(">BB", slave, fc) + data
+        pkt = pdu + self._crc16(pdu)
+        self.serial.reset_input_buffer()
+        self.serial.write(pkt)
+        self.serial.flush()
+        hdr = self.serial.read(3)
+        if len(hdr) < 3:
+            raise TimeoutError("Modbus RTU 响应超时")
+        r_slave, r_fc, byte_cnt = hdr[0], hdr[1], hdr[2]
+        if r_fc & 0x80:
+            err_tail = self.serial.read(2)
+            raise RuntimeError(f"Modbus RTU 异常码: {byte_cnt}")
+        if fc in (1, 2, 3, 4):
+            body = self.serial.read(byte_cnt + 2)
+            return bytes([byte_cnt]) + body[:-2]
+        else:
+            tail = self.serial.read(5)
+            return hdr[2:] + tail[:-2]
+
     async def read_all(self) -> dict[str, Any]:
         if not await self.ensure_connected():
             raise RuntimeError(self.last_error or "Modbus RTU 串口未连接")
-        return {}
+        out: dict[str, Any] = {}
+        async with self.lock:
+            for t in self.manifest.tags.values():
+                if not t.readable or t.reg is None:
+                    continue
+                area = t.area or "hr"
+                reg = max(0, t.reg - 1)
+                slave = t.slave_id or self.slave_id
+                try:
+                    if area in ("coil", "di"):
+                        fc = 1 if area == "coil" else 2
+                        resp = await asyncio.to_thread(self._send_rtu_sync, fc, struct.pack(">HH", reg, 1), slave)
+                        out[t.id] = bool(resp[1] & 0x01)
+                    elif area in ("ir", "hr"):
+                        fc = 4 if area == "ir" else 3
+                        cnt = 2 if t.size == 4 else 1
+                        resp = await asyncio.to_thread(self._send_rtu_sync, fc, struct.pack(">HH", reg, cnt), slave)
+                        val = ModbusTcpBackend._decode_word_bytes(t, resp[1:])
+                        if val is not None:
+                            out[t.id] = val
+                except Exception as exc:
+                    LOG.debug("Modbus RTU 读取 %s 失败: %s", t.id, exc)
+        return out
 
     async def write(self, tag: Tag, value: Any) -> None:
         if not await self.ensure_connected():
             raise RuntimeError(self.last_error or "Modbus RTU 串口未连接")
-        pass
+        area = tag.area or "hr"
+        reg = max(0, (tag.reg or 1) - 1)
+        slave = tag.slave_id or self.slave_id
+        async with self.lock:
+            try:
+                if area == "coil":
+                    data = struct.pack(">H", reg) + (b"\xFF\x00" if value else b"\x00\x00")
+                    await asyncio.to_thread(self._send_rtu_sync, 5, data, slave)
+                elif area == "hr":
+                    if tag.type == "bool":
+                        await asyncio.to_thread(self._send_rtu_sync, 6, struct.pack(">HH", reg, 1 if value else 0), slave)
+                    elif tag.type in ("int16", "uint16", "byte"):
+                        fmt = ">Hh" if tag.type == "int16" else ">HH"
+                        await asyncio.to_thread(self._send_rtu_sync, 6, struct.pack(fmt, reg, int(value)), slave)
+                    elif tag.type in ("int32", "uint32", "real"):
+                        raw = struct.pack(">f" if tag.type == "real" else (">i" if tag.type == "int32" else ">I"),
+                                          float(value) if tag.type == "real" else int(value))
+                        await asyncio.to_thread(self._send_rtu_sync, 16, struct.pack(">HHB", reg, 2, 4) + raw, slave)
+            except Exception as exc:
+                LOG.warning("Modbus RTU write tag %s failed: %s", tag.id, exc)
 
     def status(self) -> dict:
         return {
@@ -835,6 +964,338 @@ class PendingBackend:
         self._closed = True
 
 
+class McProtocolBackend(BaseProtocolBackend):
+    """三菱 MC 协议 (QnA 3E Binary over TCP, 默认端口 5000, 支持 D/M/X/Y)."""
+    name = "mc"
+    AREA_CODES = {"D": 0xA8, "M": 0x90, "X": 0x9C, "Y": 0x9D, "W": 0xB4}
+
+    def __init__(self, manifest: Manifest, cfg: dict):
+        self.manifest = manifest
+        self.ip = str(cfg.get("ip") or manifest.plc.get("ip", "192.168.0.20"))
+        self.port = int(cfg.get("port") or manifest.plc.get("port", 5000))
+        self.reader: asyncio.StreamReader | None = None
+        self.writer: asyncio.StreamWriter | None = None
+        self.connected = False
+        self.last_error = ""
+        self.lock = asyncio.Lock()
+
+    async def ensure_connected(self) -> bool:
+        if self.connected and self.writer and not self.writer.is_closing():
+            return True
+        try:
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.ip, self.port), timeout=2.5)
+            self.connected = True
+            self.last_error = ""
+        except Exception as exc:
+            self.connected = False
+            self.last_error = f"三菱 MC 连接失败 ({self.ip}:{self.port}): {exc}"
+        return self.connected
+
+    @staticmethod
+    def _parse_mc_addr(addr: str) -> tuple[int, int]:
+        m = re.match(r"^([DMXYW])(\d+)$", addr.strip(), re.IGNORECASE)
+        if not m:
+            raise ValueError(f"不支持的三菱 MC 地址: {addr}")
+        return McProtocolBackend.AREA_CODES[m.group(1).upper()], int(m.group(2))
+
+    async def _mc_cmd(self, cmd: int, subcmd: int, payload: bytes) -> bytes:
+        body = struct.pack("<HH", cmd, subcmd) + payload
+        hdr = struct.pack("<5sH", b"\x50\x00\x00\xFF\xFF\x03\x00"[:5], 0)  # placeholder
+        # Standard 3E binary request header: 50 00 | 00 | FF | FF 03 | 00 | len(2) | timer(2)
+        frame = b"\x50\x00\x00\xFF\xFF\x03\x00" + struct.pack("<HH", len(body) + 2, 0x0010) + body
+        self.writer.write(frame)
+        await self.writer.drain()
+        resp_hdr = await asyncio.wait_for(self.reader.readexactly(11), timeout=2.0)
+        resp_len = struct.unpack("<H", resp_hdr[7:9])[0]
+        end_code_and_data = await asyncio.wait_for(self.reader.readexactly(resp_len), timeout=2.0)
+        end_code = struct.unpack("<H", end_code_and_data[:2])[0]
+        if end_code != 0:
+            raise RuntimeError(f"MC 错误码: 0x{end_code:04X}")
+        return end_code_and_data[2:]
+
+    async def read_all(self) -> dict[str, Any]:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "三菱 MC 未连接")
+        out: dict[str, Any] = {}
+        async with self.lock:
+            for t in self.manifest.tags.values():
+                if not t.readable:
+                    continue
+                try:
+                    code, head = self._parse_mc_addr(t.address)
+                    cnt = 2 if t.size == 4 else 1
+                    payload = struct.pack("<I", head)[:3] + struct.pack("<BH", code, cnt)
+                    raw = await self._mc_cmd(0x0401, 0x0000, payload)
+                    if t.type == "bool":
+                        out[t.id] = bool(struct.unpack("<H", raw[:2])[0] & 1)
+                    elif t.type == "int16":
+                        out[t.id] = struct.unpack("<h", raw[:2])[0]
+                    elif t.type == "real":
+                        out[t.id] = round(struct.unpack("<f", raw[:4])[0], 4)
+                    elif t.type == "int32":
+                        out[t.id] = struct.unpack("<i", raw[:4])[0]
+                except Exception as exc:
+                    LOG.debug("MC 读取 %s 失败: %s", t.id, exc)
+        return out
+
+    async def write(self, tag: Tag, value: Any) -> None:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "三菱 MC 未连接")
+        async with self.lock:
+            code, head = self._parse_mc_addr(tag.address)
+            if tag.type == "real":
+                raw = struct.pack("<f", float(value))
+                cnt = 2
+            elif tag.type == "int32":
+                raw = struct.pack("<i", int(value))
+                cnt = 2
+            elif tag.type == "bool":
+                raw = struct.pack("<H", 1 if value else 0)
+                cnt = 1
+            else:
+                raw = struct.pack("<h", int(value))
+                cnt = 1
+            payload = struct.pack("<I", head)[:3] + struct.pack("<BH", code, cnt) + raw
+            await self._mc_cmd(0x1401, 0x0000, payload)
+
+    def status(self) -> dict:
+        return {"state": "connected" if self.connected else "error", "message": self.last_error, "target": f"{self.ip}:{self.port}", "protocol": "mc"}
+
+    async def close(self):
+        if self.writer:
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except Exception:
+                pass
+
+
+class FinsBackend(BaseProtocolBackend):
+    """欧姆龙 FINS/TCP 协议 (默认端口 9600, 支持 DM/D/CIO/WR/HR)."""
+    name = "fins"
+    AREA_CODES = {"D": 0x82, "DM": 0x82, "CIO": 0xB0, "W": 0xB1, "WR": 0xB1, "H": 0xB2, "HR": 0xB2}
+
+    def __init__(self, manifest: Manifest, cfg: dict):
+        self.manifest = manifest
+        self.ip = str(cfg.get("ip") or manifest.plc.get("ip", "192.168.0.25"))
+        self.port = int(cfg.get("port") or manifest.plc.get("port", 9600))
+        self.reader: asyncio.StreamReader | None = None
+        self.writer: asyncio.StreamWriter | None = None
+        self.connected = False
+        self.last_error = ""
+        self.client_node = 0
+        self.server_node = 0
+        self.sid = 1
+        self.lock = asyncio.Lock()
+
+    async def ensure_connected(self) -> bool:
+        if self.connected and self.writer and not self.writer.is_closing():
+            return True
+        try:
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.ip, self.port), timeout=2.5)
+            # FINS/TCP Node Address Request
+            hs = b"FINS" + struct.pack(">IIII", 12, 0, 0, 0)
+            self.writer.write(hs)
+            await self.writer.drain()
+            resp = await asyncio.wait_for(self.reader.readexactly(24), timeout=2.5)
+            self.client_node, self.server_node = struct.unpack(">II", resp[16:24])
+            self.connected = True
+            self.last_error = ""
+        except Exception as exc:
+            self.connected = False
+            self.last_error = f"欧姆龙 FINS 连接失败 ({self.ip}:{self.port}): {exc}"
+        return self.connected
+
+    @staticmethod
+    def _parse_fins_addr(addr: str) -> tuple[int, int, int]:
+        m = re.match(r"^(DM|CIO|WR|HR|[DWH])(\d+)(?:\.(\d+))?$", addr.strip(), re.IGNORECASE)
+        if not m:
+            raise ValueError(f"不支持的欧姆龙 FINS 地址: {addr}")
+        return FinsBackend.AREA_CODES[m.group(1).upper()], int(m.group(2)), int(m.group(3) or 0)
+
+    async def _fins_cmd(self, mrc: int, src: int, body: bytes) -> bytes:
+        self.sid = (self.sid + 1) & 0xFF
+        fins_hdr = struct.pack(">BBBBBBBBBB", 0x80, 0x00, 0x02, 0x00, self.server_node & 0xFF, 0x00, 0x00, self.client_node & 0xFF, 0x00, self.sid)
+        pdu = fins_hdr + struct.pack(">BB", mrc, src) + body
+        frame = b"FINS" + struct.pack(">III", len(pdu) + 8, 2, 0) + pdu
+        self.writer.write(frame)
+        await self.writer.drain()
+        hdr = await asyncio.wait_for(self.reader.readexactly(16), timeout=2.0)
+        plen = struct.unpack(">I", hdr[4:8])[0] - 8
+        resp = await asyncio.wait_for(self.reader.readexactly(plen), timeout=2.0)
+        return resp[14:]
+
+    async def read_all(self) -> dict[str, Any]:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "欧姆龙 FINS 未连接")
+        out: dict[str, Any] = {}
+        async with self.lock:
+            for t in self.manifest.tags.values():
+                if not t.readable:
+                    continue
+                try:
+                    code, word, bit = self._parse_fins_addr(t.address)
+                    cnt = 2 if t.size == 4 else 1
+                    raw = await self._fins_cmd(0x01, 0x01, struct.pack(">BHBH", code, word, 0, cnt))
+                    if t.type == "bool":
+                        out[t.id] = bool((struct.unpack(">H", raw[:2])[0] >> bit) & 1)
+                    elif t.type == "int16":
+                        out[t.id] = struct.unpack(">h", raw[:2])[0]
+                    elif t.type == "real":
+                        out[t.id] = round(struct.unpack(">f", raw[:4])[0], 4)
+                    elif t.type == "int32":
+                        out[t.id] = struct.unpack(">i", raw[:4])[0]
+                except Exception as exc:
+                    LOG.debug("FINS 读取 %s 失败: %s", t.id, exc)
+        return out
+
+    async def write(self, tag: Tag, value: Any) -> None:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "欧姆龙 FINS 未连接")
+        async with self.lock:
+            code, word, _ = self._parse_fins_addr(tag.address)
+            if tag.type == "real":
+                raw, cnt = struct.pack(">f", float(value)), 2
+            elif tag.type == "int32":
+                raw, cnt = struct.pack(">i", int(value)), 2
+            elif tag.type == "bool":
+                raw, cnt = struct.pack(">H", 1 if value else 0), 1
+            else:
+                raw, cnt = struct.pack(">h", int(value)), 1
+            await self._fins_cmd(0x01, 0x02, struct.pack(">BHBH", code, word, 0, cnt) + raw)
+
+    def status(self) -> dict:
+        return {"state": "connected" if self.connected else "error", "message": self.last_error, "target": f"{self.ip}:{self.port}", "protocol": "fins"}
+
+    async def close(self):
+        if self.writer:
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except Exception:
+                pass
+
+
+class MqttBackend(BaseProtocolBackend):
+    """轻量级纯 Python MQTT 3.1.1 客户端 (无需第三方库, Tag address 即 Topic)."""
+    name = "mqtt"
+
+    def __init__(self, manifest: Manifest, cfg: dict):
+        self.manifest = manifest
+        self.ip = str(cfg.get("ip") or manifest.plc.get("ip", "127.0.0.1"))
+        self.port = int(cfg.get("port") or manifest.plc.get("port", 1883))
+        self.reader: asyncio.StreamReader | None = None
+        self.writer: asyncio.StreamWriter | None = None
+        self.connected = False
+        self.last_error = ""
+        self.values: dict[str, Any] = {}
+        self._rx_task: asyncio.Task | None = None
+        self.lock = asyncio.Lock()
+
+    @staticmethod
+    def _enc_len(n: int) -> bytes:
+        out = bytearray()
+        while True:
+            b = n % 128
+            n //= 128
+            if n > 0:
+                b |= 0x80
+            out.append(b)
+            if n == 0:
+                break
+        return bytes(out)
+
+    @staticmethod
+    def _enc_str(s: str) -> bytes:
+        b = s.encode("utf-8")
+        return struct.pack(">H", len(b)) + b
+
+    async def ensure_connected(self) -> bool:
+        if self.connected and self.writer and not self.writer.is_closing():
+            return True
+        try:
+            self.reader, self.writer = await asyncio.wait_for(asyncio.open_connection(self.ip, self.port), timeout=2.5)
+            vh = self._enc_str("MQTT") + b"\x04\x02" + struct.pack(">H", 60)
+            pl = self._enc_str(f"twin-{int(time.time())}")
+            self.writer.write(b"\x10" + self._enc_len(len(vh) + len(pl)) + vh + pl)
+            await self.writer.drain()
+            ack = await asyncio.wait_for(self.reader.readexactly(4), timeout=2.5)
+            if ack[0] != 0x20 or ack[3] != 0x00:
+                raise RuntimeError("MQTT CONNACK 失败")
+            # Subscribe to all readable tag topics
+            topics = [t.address for t in self.manifest.tags.values() if t.readable]
+            if topics:
+                sub_pl = b"".join(self._enc_str(tp) + b"\x00" for tp in topics)
+                sub_vh = struct.pack(">H", 1)
+                self.writer.write(b"\x82" + self._enc_len(len(sub_vh) + len(sub_pl)) + sub_vh + sub_pl)
+                await self.writer.drain()
+            self.connected = True
+            self.last_error = ""
+            if not self._rx_task or self._rx_task.done():
+                self._rx_task = asyncio.create_task(self._rx_loop())
+        except Exception as exc:
+            self.connected = False
+            self.last_error = f"MQTT 连接失败 ({self.ip}:{self.port}): {exc}"
+        return self.connected
+
+    async def _rx_loop(self):
+        topic_map = {t.address: t for t in self.manifest.tags.values()}
+        try:
+            while self.connected and self.reader:
+                b1 = await self.reader.readexactly(1)
+                rem_len, mult = 0, 1
+                while True:
+                    b = (await self.reader.readexactly(1))[0]
+                    rem_len += (b & 0x7F) * mult
+                    if not (b & 0x80):
+                        break
+                    mult *= 128
+                body = await self.reader.readexactly(rem_len)
+                if (b1[0] & 0xF0) == 0x30:  # PUBLISH
+                    tlen = struct.unpack(">H", body[:2])[0]
+                    topic = body[2:2 + tlen].decode("utf-8", errors="ignore")
+                    payload_str = body[2 + tlen:].decode("utf-8", errors="ignore").strip()
+                    if topic in topic_map:
+                        t = topic_map[topic]
+                        if t.type == "bool":
+                            self.values[t.id] = payload_str.lower() in ("1", "true", "on")
+                        elif t.type in ("int16", "int32", "uint16", "uint32", "byte"):
+                            self.values[t.id] = int(float(payload_str))
+                        elif t.type == "real":
+                            self.values[t.id] = round(float(payload_str), 4)
+                        else:
+                            self.values[t.id] = payload_str
+        except Exception:
+            self.connected = False
+
+    async def read_all(self) -> dict[str, Any]:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "MQTT 未连接")
+        return dict(self.values)
+
+    async def write(self, tag: Tag, value: Any) -> None:
+        if not await self.ensure_connected():
+            raise RuntimeError(self.last_error or "MQTT 未连接")
+        payload = ("1" if value else "0") if tag.type == "bool" else str(value)
+        pkt_body = self._enc_str(tag.address) + payload.encode("utf-8")
+        self.writer.write(b"\x30" + self._enc_len(len(pkt_body)) + pkt_body)
+        await self.writer.drain()
+
+    def status(self) -> dict:
+        return {"state": "connected" if self.connected else "error", "message": self.last_error, "target": f"{self.ip}:{self.port}", "protocol": "mqtt"}
+
+    async def close(self):
+        self.connected = False
+        if self._rx_task:
+            self._rx_task.cancel()
+        if self.writer:
+            try:
+                self.writer.close()
+                await self.writer.wait_closed()
+            except Exception:
+                pass
+
+
 def create_backend(manifest: Manifest, plc_cfg: dict, mock: bool = False, wait_plc: bool = False):
     if mock:
         return MockBackend(manifest)
@@ -850,6 +1311,12 @@ def create_backend(manifest: Manifest, plc_cfg: dict, mock: bool = False, wait_p
         return ModbusRtuBackend(manifest, plc_cfg)
     elif protocol in ("tcp-raw", "raw-tcp", "tcp", "socket"):
         return TcpRawBackend(manifest, plc_cfg)
+    elif protocol in ("mc", "mitsubishi-mc", "melsec"):
+        return McProtocolBackend(manifest, plc_cfg)
+    elif protocol in ("fins", "omron-fins"):
+        return FinsBackend(manifest, plc_cfg)
+    elif protocol in ("mqtt", "mqtt3"):
+        return MqttBackend(manifest, plc_cfg)
     else:
         # 尝试动态加载用户自定义协议驱动模块 custom_driver.py
         try:
@@ -859,7 +1326,7 @@ def create_backend(manifest: Manifest, plc_cfg: dict, mock: bool = False, wait_p
         except ImportError:
             pass
         raise ValueError(
-            f"未知的协议类型: {protocol}。目前内置支持: s7, modbus-tcp, modbus-rtu, tcp-raw。"
+            f"未知的协议类型: {protocol}。目前内置支持: s7, modbus-tcp, modbus-rtu, tcp-raw, mc, fins, mqtt。"
             f"AI 自主开发新协议驱动请遵循 references/protocol-extension-guide.md 规范。"
         )
 
@@ -1016,7 +1483,7 @@ class Gateway:
             raise ProtocolError("BAD_BACKEND", "网关处于 mock 模式，不能连接 PLC")
         proto = str(msg.get("protocol") or self.manifest.protocol).lower()
         ip = msg.get("ip")
-        if proto in ("s7", "s7comm", "siemens", "modbus-tcp", "tcp-raw"):
+        if proto in ("s7", "s7comm", "siemens", "modbus-tcp", "tcp-raw", "mc", "mitsubishi-mc", "fins", "omron-fins", "mqtt"):
             try:
                 if not isinstance(ipaddress.ip_address(str(ip)), ipaddress.IPv4Address):
                     raise ValueError
@@ -1029,6 +1496,13 @@ class Gateway:
                 hz = int(msg["pollHz"])
                 if 1 <= hz <= 50:
                     self.poll_hz = hz
+            except (ValueError, TypeError):
+                pass
+        elif "pollMs" in msg:
+            try:
+                ms = int(msg["pollMs"])
+                if ms > 0:
+                    self.poll_hz = max(1, min(50, round(1000 / ms)))
             except (ValueError, TypeError):
                 pass
         plc_cfg = dict(msg)

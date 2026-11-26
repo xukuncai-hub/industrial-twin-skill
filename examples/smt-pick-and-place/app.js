@@ -99,14 +99,21 @@
     document.getElementById('connText').textContent = `正在连接 [${proto}] · ${ep} (${poll} ms)`;
     if (window.TiaTwinClient) {
       try {
-        const cli = new window.TiaTwinClient('ws://127.0.0.1:8765/ws');
-        cli.onStatus = (s) => {
-          if (s && s.connected) {
+        const miniManifest = {
+          schema: 'tia-web-twin/manifest@1',
+          project: 'smt-pick-and-place',
+          plc: { protocol: proto, ip: ep.split(':')[0], pollMs: Number(poll) },
+          tags: tagsMeta.map((t) => ({ id: t.id, address: t.addr, type: t.type, access: t.access }))
+        };
+        const cli = new window.TiaTwinClient({ manifest: miniManifest, url: 'ws://127.0.0.1:8765/ws', autoReconnect: false });
+        cli.on('status', (s) => {
+          if (s && s.state === 'connected') {
             document.getElementById('connDot').className = 'status-dot';
             document.getElementById('connText').textContent = `已连通 [${proto}] · ${ep} (${poll} ms)`;
+            cli.plcConfigure({ protocol: proto, ip: ep.split(':')[0], pollMs: Number(poll) }).catch(() => {});
           }
-        };
-        cli.connect({ protocol: proto, ip: ep.split(':')[0], pollMs: Number(poll) });
+        });
+        cli.connect();
       } catch (_) {}
     }
     modal.classList.remove('open');

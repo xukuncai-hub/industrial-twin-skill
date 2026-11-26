@@ -180,9 +180,12 @@ python scripts/inspect_glb.py assets/models/my_line.glb
 | :--- | :--- | :--- |
 | **Siemens S7comm** | `s7` | S7-1200 / 1500 / 300 / 400 & **PLCSIM Advanced**; penetrates non-optimized `DB`, `%I`, `%Q`, `%M`, 16-bit analog (`IW/QW/MW`), and 32-bit float (`MD/DBD`); merges contiguous `(area, db)` ranges for **10–30Hz** refresh |
 | **Modbus TCP** | `modbus-tcp` | Pure async Python with **zero external dependencies**, supporting `0x / 1x / 3x / 4x` coils and registers |
-| **Modbus RTU** | `modbus-rtu` | RS-485 serial fieldbus (baud rate, slave ID, parity) for inverters and meters |
+| **Modbus RTU** | `modbus-rtu` | RS-485 serial fieldbus with native CRC16 framing for inverters and meters |
+| **Mitsubishi MC** | `mc` | Pure async Python QnA 3E Binary (Port `5000`) for FX5U / Q / iQ-R (`D/M/X/Y`) |
+| **Omron FINS** | `fins` | Pure async Python FINS/TCP (Port `9600`) for CP1H / CJ2M / NX1P (`DM/CIO/WR/HR`) |
+| **MQTT 3.1.1** | `mqtt` | Zero-dependency lightweight client (Port `1883`), mapping Tag addresses directly to Topics |
 | **Raw TCP/IP** | `tcp-raw` | Binary streams & delimiter framing for barcode scanners, vision cameras, and ESP32/STM32 boards |
-| **AI Extension** | Custom | Subclass `BaseProtocolBackend` per [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) to add Mitsubishi MC, Omron FINS, MQTT, or Beckhoff ADS in ~10 minutes |
+| **AI Extension** | Custom | Subclass `BaseProtocolBackend` per [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) to add Beckhoff ADS, EtherNet/IP, or custom protocols |
 
 ---
 
