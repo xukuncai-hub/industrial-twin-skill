@@ -1,0 +1,42 @@
+// ==============================================================================
+// TIA Portal 外部源文件
+// 工程项目: smart-factory-scada
+// 自动生成自: twin.manifest.json (原生支持跨 DB)
+// 说明：此数据块必须关闭【优化的块访问】，以确保固定物理地址对齐。
+// 导入博途：项目树 -> 外部源文件 -> 添加此文件 -> 右键'从源文件生成块'
+// ==============================================================================
+
+DATA_BLOCK "TwinIO"
+{ S7_Optimized_Access := 'FALSE' }
+VERSION : 0.1
+NON_RETAIN
+   STRUCT
+      cmd_start : Bool; // DB1.DBX0.0: 产线总启动命令
+      cmd_stop : Bool; // DB1.DBX0.1: 产线有序停止命令
+      cmd_reset : Bool; // DB1.DBX0.2: 报警复位命令
+      cmd_estop : Bool; // DB1.DBX0.3: 安全急停触发
+      _pad_b0_bits : ARRAY[0..3] OF Bool; // 填充位
+      sens_pe1_infeed : Bool; // DB1.DBX1.0: ST01 上料光电传感器
+      sens_pe2_laser : Bool; // DB1.DBX1.1: ST02 打标定位光电
+      sens_pe3_vision : Bool; // DB1.DBX1.2: ST04 视觉触发光电
+      sens_vision_ok : Bool; // DB1.DBX1.3: ST04 AOI 视觉判定合格
+      sens_pe4_outfeed : Bool; // DB1.DBX1.4: ST06 出料满盘光电
+      _pad_b1_bits : ARRAY[0..2] OF Bool; // 填充位
+      line_running : Bool; // DB1.DBX2.0: 主输送线运行反馈
+      robot_busy : Bool; // DB1.DBX2.1: 六轴机器人抓取运行中
+      laser_firing : Bool; // DB1.DBX2.2: 激光打标头出光状态
+      cyl_divert : Bool; // DB1.DBX2.3: 气动分拣推杆电磁阀
+      _pad_b2_bits : ARRAY[0..3] OF Bool; // 填充位
+      _pad_b3 : Byte; // 字节对齐填充
+      line_rpm : Int; // DB1.DBW4: 主输送伺服电机转速 (RPM)
+      _pad_b6_b7 : ARRAY[0..1] OF Byte; // 空间填充
+      prod_total : DInt; // DB1.DBD8: 当日累计合格产出 (PCS)
+      prod_oee : Real; // DB1.DBD12: 产线综合设备效率 OEE (%)
+      prod_cycle_s : Real; // DB1.DBD16: 单件平均节拍 (s)
+      sys_air_mpa : Real; // DB1.DBD20: 主气源系统压力 (MPa)
+      sys_motor_amp : Real; // DB1.DBD24: 主驱动母线电流 (A)
+      laser_temp_c : Real; // DB1.DBD28: 激光器冷却水温度 (°C)
+   END_STRUCT;
+
+BEGIN
+END_DATA_BLOCK

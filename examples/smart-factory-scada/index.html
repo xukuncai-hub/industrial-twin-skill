@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>大型新能源电驱智能产线 · 2.5D 数字孪生 SCADA</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <!-- Left Slim Navigation Rail -->
+    <nav class="nav-rail" aria-label="主视图切换">
+      <div class="rail-logo" title="Industrial Twin SCADA">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+        </svg>
+      </div>
+      <button class="rail-btn active" data-view="twin" title="2.5D 数字孪生监控" aria-label="2.5D 数字孪生监控">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="tags" title="I/O 点表监视器" aria-label="I/O 点表监视器">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="trends" title="多通道波形与 OEE" aria-label="多通道波形与 OEE">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M3 12h4l3-7 4 14 3-7h4"/>
+        </svg>
+      </button>
+      <button class="rail-btn" data-view="alarms" title="联锁与事件日志" aria-label="联锁与事件日志">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+      </button>
+      <div class="rail-spacer"></div>
+      <button class="rail-btn" id="btnOpenPlcModal" title="PLC 连接参数" aria-label="PLC 连接参数">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.604.852.997 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </nav>
+
+    <!-- Top Command Header -->
+    <header class="topbar">
+      <div class="top-left">
+        <span class="line-title">新能源电驱智能总装线 · 2.5D 数字孪生 SCADA</span>
+        <span class="conn-status">
+          <span id="connDot" class="status-dot"></span>
+          <span id="connText">离线自主仿真 · 100 ms</span>
+        </span>
+      </div>
+      <div class="top-right">
+        <div class="kpi-bar">
+          <div class="kpi-cell"><span>当日产出</span><strong id="kpiTotal">4,286</strong></div>
+          <div class="kpi-cell"><span>OEE</span><strong id="kpiOee" style="color:#34d399;">94.6%</strong></div>
+          <div class="kpi-cell"><span>节拍</span><strong id="kpiCycle">1.42 s</strong></div>
+        </div>
+        <div class="seg-switch" role="tablist" aria-label="运行模式">
+          <button id="modeOffline" class="seg-btn active" role="tab" aria-selected="true">离线仿真</button>
+          <button id="modeOnline" class="seg-btn" role="tab" aria-selected="false">连接 PLC</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-area">
+      <!-- View 1: 2.5D Digital Twin Viewport -->
+      <section id="view-twin" class="view-pane active">
+        <canvas id="isoCanvas" aria-label="六工位智能产线 2.5D 数字孪生画布"></canvas>
+
+        <!-- Floating Command Toolbar -->
+        <div class="cmd-toolbar">
+          <button id="btnStart" class="btn ok">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            启动产线
+          </button>
+          <button id="btnStop" class="btn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+            停止
+          </button>
+          <button id="btnReset" class="btn">复位</button>
+          <button id="btnEstop" class="btn danger">急停</button>
+          <div class="toolbar-sep"></div>
+          <button id="btnSpeed" class="btn active-toggle">1.0x</button>
+          <button id="btnXray" class="btn">透视层</button>
+        </div>
+
+        <!-- Floating Station Inspector -->
+        <aside class="station-hud" aria-label="工站实时详情">
+          <div class="station-hud-head">
+            <strong id="stTitle">ST03 · 六轴机器人单元</strong>
+            <span id="stCode">RUN</span>
+          </div>
+          <div class="station-kv">
+            <div class="kv-row"><span>当前工步</span><strong id="stStep">物料搬运至激光位</strong></div>
+            <div class="kv-row"><span>关联信号</span><strong id="stSignal">DB1.DBX2.1 = 1</strong></div>
+            <div class="kv-row"><span>伺服负载</span><strong id="stLoad">42.8 %</strong></div>
+            <div class="kv-row"><span>工站累计</span><strong id="stCount">4,286 PCS</strong></div>
+          </div>
+        </aside>
+
+        <!-- Bottom Floating Telemetry Dock -->
+        <div class="telemetry-dock">
+          <div class="dock-cell">
+            <div class="dock-head"><span>主输送伺服</span><span class="dock-addr">DB1.DBW4</span></div>
+            <div class="dock-val"><span id="indLine" class="ind ok"></span><span id="valRpm">1450 RPM</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>进料光电 PE1</span><span class="dock-addr">DB1.DBX1.0</span></div>
+            <div class="dock-val"><span id="indPe1" class="ind active"></span><span id="valPe1">待机</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>激光打标头</span><span class="dock-addr">DB1.DBX2.2</span></div>
+            <div class="dock-val"><span id="indLaser" class="ind"></span><span id="valLaser">待命 · 24.6°C</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>分拣气缸 CYL1</span><span class="dock-addr">DB1.DBX2.3</span></div>
+            <div class="dock-val"><span id="indCyl" class="ind"></span><span id="valCyl">原位缩回</span></div>
+          </div>
+          <div class="dock-cell">
+            <div class="dock-head"><span>气源 / 电流</span><span class="dock-addr">DB1.DBD20</span></div>
+            <div class="dock-val"><span id="valSys">0.62 MPa · 14.2 A</span></div>
+          </div>
+          <div class="dock-cell">
+            <div>
+              <div class="dock-head"><span>实时吞吐</span></div>
+              <div class="dock-val" style="margin-top:2px;"><span id="valThroughput">42.2</span><small style="font-size:11px;color:var(--muted);font-weight:400;">PCS/min</small></div>
+            </div>
+            <svg id="sparkSvg" viewBox="0 0 110 34" width="110" height="34">
+              <path id="sparkLine" d="M2,24 L18,21 L34,23 L50,15 L66,18 L82,11 L98,14 L108,9" fill="none" stroke="#38bdf8" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 2: Live I/O Tag Table -->
+      <section id="view-tags" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>PLC I/O 信号契约实时监视表 (DB1)</h2>
+            <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、地址或说明…" />
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Tag ID</th>
+                <th>PLC 地址</th>
+                <th>类型</th>
+                <th>读写方向</th>
+                <th>当前值</th>
+                <th>说明</th>
+              </tr>
+            </thead>
+            <tbody id="tagTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- View 3: Multi-Channel Oscilloscope & OEE -->
+      <section id="view-trends" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>多通道实时波形与 OEE 效率分析</h2>
+            <span class="mono" style="font-size:12px;color:var(--muted);">采样节拍: 10 Hz</span>
+          </div>
+          <div class="trend-grid">
+            <div class="trend-box wide">
+              <h3>主驱动母线电流 (A) &amp; 产线吞吐率 (PCS/min)</h3>
+              <canvas id="trendCanvas" width="1100" height="260" style="width:100%;height:260px;"></canvas>
+            </div>
+            <div class="trend-box">
+              <h3>时间开动率 (Availability)</h3>
+              <div class="mono" style="font-size:28px;font-weight:600;color:#10b981;">97.2 %</div>
+            </div>
+            <div class="trend-box">
+              <h3>性能与良品率 (Performance × Quality)</h3>
+              <div class="mono" style="font-size:28px;font-weight:600;color:#38bdf8;">97.3 %</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- View 4: Alarm & Interlock Log -->
+      <section id="view-alarms" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>联锁事件与报警审计日志</h2>
+            <button id="btnClearLog" class="btn">清空日志</button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>时间戳</th>
+                <th>级别</th>
+                <th>来源工站</th>
+                <th>事件内容</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- PLC Connection Modal -->
+  <div id="plcModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="plcModalTitle">
+    <div class="modal-card">
+      <h3 id="plcModalTitle">连接西门子 S7 PLC / PLCSIM Advanced</h3>
+      <label class="field">目标设备 IP 地址
+        <input id="plcIp" value="192.168.0.10" spellcheck="false" />
+      </label>
+      <div class="field-row">
+        <label class="field">Rack
+          <input id="plcRack" type="number" value="0" min="0" max="7" />
+        </label>
+        <label class="field">Slot
+          <input id="plcSlot" type="number" value="1" min="0" max="31" />
+        </label>
+      </div>
+      <label class="field">通信扫描周期
+        <select id="plcPollMs">
+          <option value="100" selected>100 ms (10 Hz · 工业标准推荐)</option>
+          <option value="50">50 ms (20 Hz · 高速响应)</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button id="btnCloseModal" class="btn">取消</button>
+        <button id="btnConfirmPlc" class="btn ok">建立连接</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="tia-twin-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
