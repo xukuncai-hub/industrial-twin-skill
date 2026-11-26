@@ -3,22 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SMT 高速贴片机生产线 · 2.5D 数字孪生 SCADA</title>
+  <title>SMT 高速贴片机生产线 · 组态与数据 SCADA</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
-    <!-- Left Slim Navigation Rail -->
     <nav class="nav-rail" aria-label="主视图切换">
       <div class="rail-logo">SMT</div>
-      <button class="rail-btn active" data-view="twin" title="2.5D 产线数字孪生" aria-label="2.5D 产线数字孪生">
+      <button class="rail-btn active" data-view="scada" title="产线组态与实时数据" aria-label="产线组态与实时数据">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>
-        </svg>
-      </button>
-      <button class="rail-btn" data-view="process" title="飞达与回流焊温区" aria-label="飞达与回流焊温区">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-          <path d="M3 12h4l3-7 4 14 3-7h4"/>
         </svg>
       </button>
       <button class="rail-btn" data-view="tags" title="多协议 I/O 点表监视" aria-label="多协议 I/O 点表监视">
@@ -39,20 +33,20 @@
       </button>
     </nav>
 
-    <!-- Topbar -->
     <header class="topbar">
       <div class="top-left">
-        <span class="line-title">SMT-PRO 5000 · 高速贴片生产线 2.5D 数字孪生</span>
+        <span class="line-title">SMT-PRO 5000 · 高速贴片产线组态与数据监控</span>
         <span class="conn-status">
           <span id="connDot" class="status-dot"></span>
-          <span id="connText">离线自主仿真 · 100 ms</span>
+          <span id="connText">离线就绪 · 多协议支持 (S7 / Modbus / TCP)</span>
         </span>
       </div>
       <div class="top-right">
         <div class="kpi-bar">
-          <div class="kpi-cell"><span>贴装速度</span><strong id="kpiCph" style="color:var(--active);">43,200 CPH</strong></div>
-          <div class="kpi-cell"><span>良品率</span><strong id="kpiYield" style="color:var(--ok);">99.88%</strong></div>
-          <div class="kpi-cell"><span>今日产出</span><strong id="kpiTotal">2,864</strong></div>
+          <div class="kpi-cell"><span>贴装速度</span><strong style="color:var(--active);">43,200 CPH</strong></div>
+          <div class="kpi-cell"><span>良品率</span><strong style="color:var(--ok);">99.88%</strong></div>
+          <div class="kpi-cell"><span>OEE</span><strong>94.2%</strong></div>
+          <div class="kpi-cell"><span>今日产出</span><strong>2,864 PCS</strong></div>
         </div>
         <div class="seg-switch" role="tablist" aria-label="运行模式">
           <button id="modeOffline" class="seg-btn active" role="tab" aria-selected="true">离线仿真</button>
@@ -61,133 +55,142 @@
       </div>
     </header>
 
-    <!-- Main Area -->
     <main class="main-area">
-      <!-- View 1: 2.5D SMT Twin -->
-      <section id="view-twin" class="view-pane active">
-        <canvas id="isoCanvas" aria-label="7 工位 SMT 贴片生产线 2.5D 数字孪生画布"></canvas>
+      <!-- View 1: SCADA Mimic + Live Data -->
+      <section id="view-scada" class="view-pane active">
+        <div class="mimic-panel">
+          <div class="panel-head">
+            <h2>7 工位产线工艺组态图 (SCADA Mimic)</h2>
+            <div style="display:flex;gap:8px;">
+              <button class="btn ok">启动产线</button>
+              <button class="btn">暂停</button>
+              <button class="btn">复位</button>
+              <button class="btn danger">急停</button>
+            </div>
+          </div>
 
-        <div class="cmd-toolbar">
-          <button id="btnStart" class="btn ok">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            启动贴装
-          </button>
-          <button id="btnStop" class="btn">暂停</button>
-          <button id="btnReset" class="btn">复位</button>
-          <button id="btnEstop" class="btn danger">急停</button>
-          <div class="toolbar-sep"></div>
-          <button id="btnSpeed" class="btn active-toggle">1.0x</button>
-          <button id="btnXray" class="btn">透视层</button>
+          <div class="mimic-flow">
+            <div class="station-node">
+              <div class="st-top"><span>ST01</span><span class="st-pill"><span class="dot-ok"></span>RUN</span></div>
+              <div class="st-name">自动上板机</div>
+              <div class="st-metric">PE1 = 1</div>
+              <div class="st-addr">S7 · DB1.DBX1.0</div>
+            </div>
+            <div class="station-node">
+              <div class="st-top"><span>ST02</span><span class="st-pill"><span class="dot-ok"></span>READY</span></div>
+              <div class="st-name">锡膏印刷机</div>
+              <div class="st-metric">刮刀 45 N</div>
+              <div class="st-addr">S7 · DB1.DBX1.1</div>
+            </div>
+            <div class="station-node">
+              <div class="st-top"><span>ST03</span><span class="st-pill"><span class="dot-ok"></span>SYNC</span></div>
+              <div class="st-name">接驳缓冲台</div>
+              <div class="st-metric">轨道 2.40 m</div>
+              <div class="st-addr">S7 · DB1.DBX0.4</div>
+            </div>
+            <div class="station-node highlight">
+              <div class="st-top"><span>ST04</span><span class="st-pill"><span class="dot-ok"></span>43.2k</span></div>
+              <div class="st-name">高速贴片机</div>
+              <div class="st-metric">-84.2 kPa</div>
+              <div class="st-addr">S7 · DB1.DBD4~16</div>
+            </div>
+            <div class="station-node">
+              <div class="st-top"><span>ST05</span><span class="st-pill"><span class="dot-warn"></span>245°C</span></div>
+              <div class="st-name">8 温区回流焊</div>
+              <div class="st-metric">峰值 245.2 °C</div>
+              <div class="st-addr">Modbus RTU · IR6</div>
+            </div>
+            <div class="station-node">
+              <div class="st-top"><span>ST06</span><span class="st-pill"><span class="dot-ok"></span>PASS</span></div>
+              <div class="st-name">AOI 光学检测</div>
+              <div class="st-metric">良率 99.88%</div>
+              <div class="st-addr">Raw TCP · Port 9000</div>
+            </div>
+            <div class="station-node">
+              <div class="st-top"><span>ST07</span><span class="st-pill"><span class="dot-ok"></span>READY</span></div>
+              <div class="st-name">自动下板机</div>
+              <div class="st-metric">2,864 PCS</div>
+              <div class="st-addr">S7 · DB1.DBD28</div>
+            </div>
+          </div>
         </div>
 
-        <aside class="station-hud" aria-label="贴装头实时状态">
-          <div class="station-hud-head">
-            <strong>ST04 · 高速贴装头坐标</strong>
-            <span id="headStatus">RUN</span>
-          </div>
-          <div class="station-kv">
-            <div class="kv-row"><span>X 轴小车 (DB1.DBD4)</span><strong id="valAxisX">+142.50 mm</strong></div>
-            <div class="kv-row"><span>Y 轴龙门 (DB1.DBD8)</span><strong id="valAxisY">-218.40 mm</strong></div>
-            <div class="kv-row"><span>Z 轴吸嘴 (DB1.DBD12)</span><strong id="valAxisZ">12.40 mm</strong></div>
-            <div class="kv-row"><span>当前飞达 (DB1.DBW2)</span><strong id="valFeeder">SLOT #04</strong></div>
-          </div>
-        </aside>
-
-        <div class="telemetry-dock">
-          <div class="dock-cell">
-            <div class="dock-head"><span>吸嘴真空负压</span><span class="dock-addr">DB1.DBD16</span></div>
-            <div class="dock-val"><span id="indVac" class="ind ok"></span><span id="valVac">-84.2 kPa</span></div>
-          </div>
-          <div class="dock-cell">
-            <div class="dock-head"><span>进板光电 PE</span><span class="dock-addr">DB1.DBX1.0</span></div>
-            <div class="dock-val"><span id="indPe" class="ind active"></span><span id="valPe">检测到 PCB</span></div>
-          </div>
-          <div class="dock-cell">
-            <div class="dock-head"><span>飞行视觉对准</span><span class="dock-addr">DB1.DBX1.2</span></div>
-            <div class="dock-val"><span class="ind ok"></span><span>ΔX +0.003 mm</span></div>
-          </div>
-          <div class="dock-cell">
-            <div class="dock-head"><span>回流焊峰值温区</span><span class="dock-addr">DB1.DBD32</span></div>
-            <div class="dock-val"><span class="ind warn"></span><span id="valTemp">245.2 °C</span></div>
-          </div>
-          <div class="dock-cell">
-            <div class="dock-head"><span>AOI 检测判定</span><span class="dock-addr">DB1.DBX1.5</span></div>
-            <div class="dock-val"><span class="ind ok"></span><span>PASS · 99.88%</span></div>
-          </div>
-          <div class="dock-cell">
-            <div>
-              <div class="dock-head"><span>节拍 / 批号</span></div>
-              <div class="dock-val" style="margin-top:2px;">11.6 <small style="font-size:11px;color:var(--muted);font-weight:400;">s/PCB</small></div>
+        <div class="data-grid-3">
+          <!-- Column 1: Axis & Vision Telemetry -->
+          <div class="data-card">
+            <div class="panel-head">
+              <h3>贴装头坐标与视觉补偿数据</h3>
+              <span class="badge r">S7 DB1</span>
             </div>
-            <svg viewBox="0 0 110 34" width="110" height="34">
-              <path d="M2,22 L18,18 L34,20 L50,13 L66,15 L82,10 L98,12 L108,8" fill="none" stroke="#0284c7" stroke-width="1.8" stroke-linecap="round"/>
-            </svg>
+            <div class="kv-table">
+              <div class="kv-item"><span><span class="k">X 轴贴装小车</span><span class="a">DB1.DBD4</span></span><span class="v">+142.50 mm</span></div>
+              <div class="kv-item"><span><span class="k">Y 轴双驱龙门</span><span class="a">DB1.DBD8</span></span><span class="v">-218.40 mm</span></div>
+              <div class="kv-item"><span><span class="k">Z 轴吸嘴行程</span><span class="a">DB1.DBD12</span></span><span class="v">12.40 mm</span></div>
+              <div class="kv-item"><span><span class="k">吸嘴真空负压</span><span class="a">DB1.DBD16</span></span><span class="v" style="color:var(--ok);">-84.2 kPa</span></div>
+              <div class="kv-item"><span><span class="k">飞行视觉补偿 ΔX / ΔY</span><span class="a">TCP:ALIGN</span></span><span class="v">+0.003 / -0.002</span></div>
+              <div class="kv-item"><span><span class="k">当前取料飞达站号</span><span class="a">HR0</span></span><span class="v">SLOT #04</span></div>
+            </div>
+          </div>
+
+          <!-- Column 2: 12 Feeders -->
+          <div class="data-card">
+            <div class="panel-head">
+              <h3>飞达料站剩余元件监控</h3>
+              <span class="badge w">Modbus TCP</span>
+            </div>
+            <div class="bar-list" id="feederRows"></div>
+          </div>
+
+          <!-- Column 3: 8-Zone Reflow Oven -->
+          <div class="data-card">
+            <div class="panel-head">
+              <h3>8 温区热风回流焊实时温度</h3>
+              <span class="badge rw">Modbus RTU</span>
+            </div>
+            <div class="bar-list" id="ovenRows"></div>
           </div>
         </div>
       </section>
 
-      <!-- View 2: Feeders & Reflow Oven -->
-      <section id="view-process" class="view-pane">
-        <div class="subview-wrap">
-          <div class="subview-head">
-            <h2>12 飞达料站余量与 8 温区热风回流焊监控</h2>
-          </div>
-          <div class="smt-grid">
-            <div class="mgr-panel">
-              <div class="mgr-panel-head"><h3>飞达料站剩余元件 (12 Slots)</h3><span class="badge w">REELS</span></div>
-              <div id="feederRows"></div>
-            </div>
-            <div class="mgr-panel">
-              <div class="mgr-panel-head"><h3>8 温区回流焊实时曲线 (°C)</h3><span class="badge rw">MODBUS RTU</span></div>
-              <div id="ovenRows"></div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- View 3: Multi-Protocol Tag Table -->
+      <!-- View 2: Multi-Protocol Tag Table -->
       <section id="view-tags" class="view-pane">
-        <div class="subview-wrap">
-          <div class="subview-head">
-            <h2>多协议 I/O 信号契约监视表</h2>
-            <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、设备或地址…" />
-          </div>
-          <table class="data-table">
-            <thead>
-              <tr><th>Tag ID</th><th>所属设备</th><th>协议地址</th><th>类型</th><th>方向</th><th>当前值</th><th>说明</th></tr>
-            </thead>
-            <tbody id="tagTableBody"></tbody>
-          </table>
+        <div class="subview-head">
+          <h2>多协议 I/O 信号契约监视表</h2>
+          <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、设备或地址…" />
         </div>
+        <table class="data-table">
+          <thead>
+            <tr><th>Tag ID</th><th>所属设备</th><th>协议地址</th><th>类型</th><th>方向</th><th>当前值</th><th>说明</th></tr>
+          </thead>
+          <tbody id="tagTableBody"></tbody>
+        </table>
       </section>
 
-      <!-- View 4: Device & Data Management -->
+      <!-- View 3: Device & Data Management -->
       <section id="view-devices" class="view-pane">
-        <div class="subview-wrap">
-          <div class="subview-head">
-            <h2>设备接入与数据点位管理 (S7 / Modbus TCP / RTU / Raw TCP)</h2>
-            <button id="btnExportManifest" class="btn ok">导出 twin.manifest.json</button>
+        <div class="subview-head">
+          <h2>设备接入与数据点位管理 (S7 / Modbus TCP / RTU / Raw TCP)</h2>
+          <button id="btnExportManifest" class="btn ok">导出 twin.manifest.json</button>
+        </div>
+        <div class="mgr-grid">
+          <div class="mgr-panel">
+            <div class="panel-head"><h3>已配置工业设备</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="devCountBadge">4 台设备</span></div>
+            <div id="deviceList" class="device-list"></div>
           </div>
-          <div class="mgr-grid">
-            <div class="mgr-panel">
-              <div class="mgr-panel-head"><h3>已配置工业设备</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="devCountBadge">4 台设备</span></div>
-              <div id="deviceList" class="device-list"></div>
+          <div class="mgr-panel">
+            <div class="panel-head"><h3>数据点位映射与新增</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="tagCountBadge">14 个点位</span></div>
+            <div class="tag-add-bar">
+              <input id="newTagId" class="mini-input" placeholder="Tag ID" />
+              <select id="newTagDev" class="mini-input"></select>
+              <input id="newTagAddr" class="mini-input" placeholder="地址 (如 DB1.DBD36)" />
+              <select id="newTagType" class="mini-input"><option value="bool">bool</option><option value="int16">int16</option><option value="real">real</option></select>
+              <select id="newTagAccess" class="mini-input"><option value="r">R</option><option value="w">W</option><option value="rw">RW</option></select>
+              <button id="btnAddTag" class="btn ok">添加</button>
             </div>
-            <div class="mgr-panel">
-              <div class="mgr-panel-head"><h3>数据点位映射与新增</h3><span class="mono" style="font-size:11px;color:var(--muted);" id="tagCountBadge">14 个点位</span></div>
-              <div class="tag-add-bar">
-                <input id="newTagId" class="mini-input" placeholder="Tag ID" />
-                <select id="newTagDev" class="mini-input"></select>
-                <input id="newTagAddr" class="mini-input" placeholder="地址 (如 DB1.DBD36)" />
-                <select id="newTagType" class="mini-input"><option value="bool">bool</option><option value="int16">int16</option><option value="real">real</option></select>
-                <select id="newTagAccess" class="mini-input"><option value="r">R</option><option value="w">W</option><option value="rw">RW</option></select>
-                <button id="btnAddTag" class="btn ok">添加</button>
-              </div>
-              <table class="data-table" style="margin-top:12px;">
-                <thead><tr><th>Tag ID</th><th>设备</th><th>地址</th><th>类型</th><th>方向</th><th>操作</th></tr></thead>
-                <tbody id="mgrTagBody"></tbody>
-              </table>
-            </div>
+            <table class="data-table" style="margin-top:12px;">
+              <thead><tr><th>Tag ID</th><th>设备</th><th>地址</th><th>类型</th><th>方向</th><th>操作</th></tr></thead>
+              <tbody id="mgrTagBody"></tbody>
+            </table>
           </div>
         </div>
       </section>
