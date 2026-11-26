@@ -502,6 +502,102 @@ html, body {
   margin-top: 4px;
 }
 
+/* Device & Data Manager */
+.mgr-grid {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.mgr-col {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mgr-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 16px;
+}
+
+.mgr-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
+
+.mgr-panel-head h3 {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #f8fafc;
+}
+
+.device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.device-card {
+  background: rgba(15, 23, 42, 0.72);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 11px 13px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.device-card.active-dev {
+  border-color: rgba(16, 185, 129, 0.45);
+}
+
+.dev-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.dev-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dev-endpoint {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.tag-add-bar {
+  display: grid;
+  grid-template-columns: 1.2fr 1.1fr 1.2fr 0.7fr 0.6fr auto;
+  gap: 8px;
+  align-items: center;
+}
+
+.mini-input {
+  background: #0b1018;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 6px 9px;
+  color: var(--fg);
+  font-family: var(--mono);
+  font-size: 11.5px;
+  min-width: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; }
 }

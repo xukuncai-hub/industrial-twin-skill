@@ -44,27 +44,34 @@
     { name: 'ST06 · AGV 满盘出料', step: '出料缓存接驳中', sig: 'DB1.DBX1.4', load: '27.6 %' }
   ];
 
+  const devices = [
+    { id: 'PLC-01', name: '西门子 S7-1500 主控', proto: 's7', endpoint: '192.168.0.10 (R0/S1)', pollMs: 100, active: true },
+    { id: 'INV-01', name: '汇川 MD500 变频器', proto: 'modbus-tcp', endpoint: '192.168.0.21:502', pollMs: 100, active: false },
+    { id: 'MTR-01', name: 'RS-485 智能电表', proto: 'modbus-rtu', endpoint: 'COM3 @ 115200', pollMs: 200, active: false },
+    { id: 'CAM-01', name: '视觉扫码相机', proto: 'tcp-raw', endpoint: '192.168.0.30:9000', pollMs: 50, active: false }
+  ];
+
   const tagsMeta = [
-    { id: 'cmd.start', addr: 'DB1.DBX0.0', type: 'bool', access: 'rw', desc: '产线总启动命令' },
-    { id: 'cmd.stop', addr: 'DB1.DBX0.1', type: 'bool', access: 'rw', desc: '产线有序停止命令' },
-    { id: 'cmd.reset', addr: 'DB1.DBX0.2', type: 'bool', access: 'rw', desc: '报警复位命令' },
-    { id: 'cmd.estop', addr: 'DB1.DBX0.3', type: 'bool', access: 'rw', desc: '安全急停触发' },
-    { id: 'sens.pe1_infeed', addr: 'DB1.DBX1.0', type: 'bool', access: 'w', desc: 'ST01 上料光电传感器' },
-    { id: 'sens.pe2_laser', addr: 'DB1.DBX1.1', type: 'bool', access: 'w', desc: 'ST02 打标定位光电' },
-    { id: 'sens.pe3_vision', addr: 'DB1.DBX1.2', type: 'bool', access: 'w', desc: 'ST04 视觉触发光电' },
-    { id: 'sens.vision_ok', addr: 'DB1.DBX1.3', type: 'bool', access: 'w', desc: 'ST04 AOI 视觉判定合格' },
-    { id: 'sens.pe4_outfeed', addr: 'DB1.DBX1.4', type: 'bool', access: 'w', desc: 'ST06 出料满盘光电' },
-    { id: 'line.running', addr: 'DB1.DBX2.0', type: 'bool', access: 'r', desc: '主输送线运行反馈' },
-    { id: 'robot.busy', addr: 'DB1.DBX2.1', type: 'bool', access: 'r', desc: '六轴机器人抓取运行中' },
-    { id: 'laser.firing', addr: 'DB1.DBX2.2', type: 'bool', access: 'r', desc: '激光打标头出光状态' },
-    { id: 'cyl.divert', addr: 'DB1.DBX2.3', type: 'bool', access: 'r', desc: '气动分拣推杆电磁阀' },
-    { id: 'line.rpm', addr: 'DB1.DBW4', type: 'int16', access: 'r', desc: '主输送伺服电机转速 (RPM)' },
-    { id: 'prod.total', addr: 'DB1.DBD8', type: 'int32', access: 'r', desc: '当日累计合格产出 (PCS)' },
-    { id: 'prod.oee', addr: 'DB1.DBD12', type: 'real', access: 'r', desc: '产线综合设备效率 OEE (%)' },
-    { id: 'prod.cycle_s', addr: 'DB1.DBD16', type: 'real', access: 'r', desc: '单件平均节拍 (s)' },
-    { id: 'sys.air_mpa', addr: 'DB1.DBD20', type: 'real', access: 'r', desc: '主气源系统压力 (MPa)' },
-    { id: 'sys.motor_amp', addr: 'DB1.DBD24', type: 'real', access: 'r', desc: '主驱动母线电流 (A)' },
-    { id: 'laser.temp_c', addr: 'DB1.DBD28', type: 'real', access: 'r', desc: '激光器冷却水温度 (°C)' }
+    { id: 'cmd.start', dev: 'PLC-01', addr: 'DB1.DBX0.0', type: 'bool', access: 'rw', desc: '产线总启动命令' },
+    { id: 'cmd.stop', dev: 'PLC-01', addr: 'DB1.DBX0.1', type: 'bool', access: 'rw', desc: '产线有序停止命令' },
+    { id: 'cmd.reset', dev: 'PLC-01', addr: 'DB1.DBX0.2', type: 'bool', access: 'rw', desc: '报警复位命令' },
+    { id: 'cmd.estop', dev: 'PLC-01', addr: 'DB1.DBX0.3', type: 'bool', access: 'rw', desc: '安全急停触发' },
+    { id: 'sens.pe1_infeed', dev: 'PLC-01', addr: 'DB1.DBX1.0', type: 'bool', access: 'w', desc: 'ST01 上料光电传感器' },
+    { id: 'sens.pe2_laser', dev: 'PLC-01', addr: 'DB1.DBX1.1', type: 'bool', access: 'w', desc: 'ST02 打标定位光电' },
+    { id: 'sens.pe3_vision', dev: 'PLC-01', addr: 'DB1.DBX1.2', type: 'bool', access: 'w', desc: 'ST04 视觉触发光电' },
+    { id: 'sens.vision_ok', dev: 'CAM-01', addr: 'TCP:OK_FLAG', type: 'bool', access: 'w', desc: 'ST04 AOI 视觉判定合格' },
+    { id: 'sens.pe4_outfeed', dev: 'PLC-01', addr: 'DB1.DBX1.4', type: 'bool', access: 'w', desc: 'ST06 出料满盘光电' },
+    { id: 'line.running', dev: 'PLC-01', addr: 'DB1.DBX2.0', type: 'bool', access: 'r', desc: '主输送线运行反馈' },
+    { id: 'robot.busy', dev: 'PLC-01', addr: 'DB1.DBX2.1', type: 'bool', access: 'r', desc: '六轴机器人抓取运行中' },
+    { id: 'laser.firing', dev: 'PLC-01', addr: 'DB1.DBX2.2', type: 'bool', access: 'r', desc: '激光打标头出光状态' },
+    { id: 'cyl.divert', dev: 'PLC-01', addr: 'DB1.DBX2.3', type: 'bool', access: 'r', desc: '气动分拣推杆电磁阀' },
+    { id: 'line.rpm', dev: 'INV-01', addr: '40001 (HR0)', type: 'int16', access: 'r', desc: '主输送伺服电机转速 (RPM)' },
+    { id: 'prod.total', dev: 'PLC-01', addr: 'DB1.DBD8', type: 'int32', access: 'r', desc: '当日累计合格产出 (PCS)' },
+    { id: 'prod.oee', dev: 'PLC-01', addr: 'DB1.DBD12', type: 'real', access: 'r', desc: '产线综合设备效率 OEE (%)' },
+    { id: 'prod.cycle_s', dev: 'PLC-01', addr: 'DB1.DBD16', type: 'real', access: 'r', desc: '单件平均节拍 (s)' },
+    { id: 'sys.air_mpa', dev: 'PLC-01', addr: 'DB1.DBD20', type: 'real', access: 'r', desc: '主气源系统压力 (MPa)' },
+    { id: 'sys.motor_amp', dev: 'MTR-01', addr: '30012 (IR12)', type: 'real', access: 'r', desc: '主驱动母线电流 (A)' },
+    { id: 'laser.temp_c', dev: 'PLC-01', addr: 'DB1.DBD28', type: 'real', access: 'r', desc: '激光器冷却水温度 (°C)' }
   ];
 
   // View switching
@@ -125,12 +132,17 @@
   function renderTagTable() {
     const q = (document.getElementById('tagSearch').value || '').toLowerCase();
     const rows = tagsMeta.filter(
-      (t) => t.id.toLowerCase().includes(q) || t.addr.toLowerCase().includes(q) || t.desc.toLowerCase().includes(q)
+      (t) =>
+        t.id.toLowerCase().includes(q) ||
+        t.dev.toLowerCase().includes(q) ||
+        t.addr.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q)
     );
     document.getElementById('tagTableBody').innerHTML = rows
       .map(
         (t) => `<tr>
           <td class="mono">${t.id}</td>
+          <td class="mono" style="color:var(--active);">${t.dev}</td>
           <td class="mono">${t.addr}</td>
           <td class="mono">${t.type}</td>
           <td><span class="badge ${t.access}">${t.access.toUpperCase()}</span></td>
@@ -140,6 +152,116 @@
       )
       .join('');
   }
+
+  function renderDeviceManager() {
+    const listEl = document.getElementById('deviceList');
+    const devSel = document.getElementById('newTagDev');
+    document.getElementById('devCountBadge').textContent = `${devices.length} 台设备`;
+    document.getElementById('tagCountBadge').textContent = `${tagsMeta.length} 个点位`;
+
+    listEl.innerHTML = devices
+      .map(
+        (d, idx) => `<div class="device-card ${d.active ? 'active-dev' : ''}">
+          <div class="dev-meta">
+            <div class="dev-name">
+              <span class="ind ${d.active ? 'ok' : ''}"></span>
+              <span>${d.id} · ${d.name}</span>
+              <span class="badge w">${d.proto}</span>
+            </div>
+            <div class="dev-endpoint">${d.endpoint} · ${d.pollMs} ms</div>
+          </div>
+          <button class="btn" data-toggle-dev="${idx}">${d.active ? '已激活' : '启用'}</button>
+        </div>`
+      )
+      .join('');
+
+    listEl.querySelectorAll('[data-toggle-dev]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.toggleDev);
+        devices[idx].active = !devices[idx].active;
+        addLog('INFO', devices[idx].id, `${devices[idx].name} (${devices[idx].proto}) 状态切换为 ${devices[idx].active ? '启用' : '停用'}`);
+        renderDeviceManager();
+      });
+    });
+
+    devSel.innerHTML = devices.map((d) => `<option value="${d.id}">${d.id} (${d.proto})</option>`).join('');
+
+    const mgrBody = document.getElementById('mgrTagBody');
+    mgrBody.innerHTML = tagsMeta
+      .map(
+        (t, idx) => `<tr>
+          <td class="mono">${t.id}</td>
+          <td class="mono" style="color:var(--active);">${t.dev}</td>
+          <td class="mono">${t.addr}</td>
+          <td class="mono">${t.type}</td>
+          <td><span class="badge ${t.access}">${t.access.toUpperCase()}</span></td>
+          <td><button class="btn" style="padding:3px 8px;font-size:11px;" data-del-tag="${idx}">移除</button></td>
+        </tr>`
+      )
+      .join('');
+
+    mgrBody.querySelectorAll('[data-del-tag]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const idx = Number(btn.dataset.delTag);
+        const removed = tagsMeta.splice(idx, 1)[0];
+        addLog('INFO', 'DATA', `移除数据点位 ${removed.id}`);
+        renderDeviceManager();
+        renderTagTable();
+      });
+    });
+  }
+
+  document.getElementById('btnAddDeviceToggle').addEventListener('click', () => {
+    const card = document.getElementById('addDeviceCard');
+    card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('btnCancelAddDev').addEventListener('click', () => {
+    document.getElementById('addDeviceCard').style.display = 'none';
+  });
+  document.getElementById('btnSaveNewDev').addEventListener('click', () => {
+    const name = document.getElementById('newDevName').value.trim();
+    const proto = document.getElementById('newDevProto').value;
+    const endpoint = document.getElementById('newDevEndpoint').value.trim() || '192.168.0.50:502';
+    const pollMs = Number(document.getElementById('newDevPoll').value) || 100;
+    if (!name) return;
+    const id = `DEV-${String(devices.length + 1).padStart(2, '0')}`;
+    devices.push({ id, name, proto, endpoint, pollMs, active: true });
+    document.getElementById('newDevName').value = '';
+    document.getElementById('newDevEndpoint').value = '';
+    document.getElementById('addDeviceCard').style.display = 'none';
+    addLog('OK', id, `新增设备通道 ${name} [${proto}] @ ${endpoint}`);
+    renderDeviceManager();
+  });
+
+  document.getElementById('btnAddTag').addEventListener('click', () => {
+    const id = document.getElementById('newTagId').value.trim();
+    const dev = document.getElementById('newTagDev').value;
+    const addr = document.getElementById('newTagAddr').value.trim();
+    const type = document.getElementById('newTagType').value;
+    const access = document.getElementById('newTagAccess').value;
+    if (!id || !addr) return;
+    tagsMeta.push({ id, dev, addr, type, access, desc: '自定义设备点位' });
+    document.getElementById('newTagId').value = '';
+    document.getElementById('newTagAddr').value = '';
+    addLog('OK', dev, `新增数据映射 ${id} -> ${addr}`);
+    renderDeviceManager();
+    renderTagTable();
+  });
+
+  document.getElementById('btnExportManifest').addEventListener('click', () => {
+    const manifest = {
+      schema: 'tia-web-twin/manifest@1',
+      project: 'smart-factory-scada',
+      devices,
+      tags: tagsMeta.map((t) => ({ id: t.id, device: t.dev, address: t.addr, type: t.type, access: t.access, desc: t.desc }))
+    };
+    const blob = new Blob([JSON.stringify(manifest, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'twin.manifest.json';
+    a.click();
+    addLog('OK', 'EXPORT', '已导出多协议 twin.manifest.json 配置文件');
+  });
 
   document.getElementById('tagSearch').addEventListener('input', renderTagTable);
   document.getElementById('btnClearLog').addEventListener('click', () => {
@@ -175,8 +297,16 @@
     e.currentTarget.classList.toggle('active-toggle', state.xray);
   });
 
-  // PLC Modal
+  // Multi-Protocol Modal
   const modal = document.getElementById('plcModal');
+  const protoSel = document.getElementById('connProtocol');
+  protoSel.addEventListener('change', () => {
+    const v = protoSel.value;
+    document.getElementById('protoFieldsS7').style.display = v === 's7' ? 'block' : 'none';
+    document.getElementById('protoFieldsModbusTcp').style.display = v === 'modbus-tcp' ? 'block' : 'none';
+    document.getElementById('protoFieldsRtu').style.display = v === 'modbus-rtu' ? 'block' : 'none';
+    document.getElementById('protoFieldsRaw').style.display = v === 'tcp-raw' ? 'block' : 'none';
+  });
   document.getElementById('btnOpenPlcModal').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('modeOnline').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('modeOffline').addEventListener('click', () => {
@@ -188,15 +318,21 @@
   });
   document.getElementById('btnCloseModal').addEventListener('click', () => modal.classList.remove('open'));
   document.getElementById('btnConfirmPlc').addEventListener('click', () => {
-    const ip = document.getElementById('plcIp').value.trim() || '192.168.0.10';
+    const proto = protoSel.value;
     const poll = document.getElementById('plcPollMs').value;
+    let target = '';
+    if (proto === 's7') target = document.getElementById('plcIp').value.trim() || '192.168.0.10';
+    else if (proto === 'modbus-tcp') target = document.getElementById('mbIp').value.trim() || '192.168.0.21';
+    else if (proto === 'modbus-rtu') target = document.getElementById('rtuPort').value.trim() || 'COM3';
+    else target = document.getElementById('rawHost').value.trim() || '192.168.0.30:9000';
+
     state.mode = 'online';
     document.getElementById('modeOnline').classList.add('active');
     document.getElementById('modeOffline').classList.remove('active');
     document.getElementById('connDot').className = 'status-dot warn';
-    document.getElementById('connText').textContent = `网关待命 · ${ip} (${poll} ms)`;
+    document.getElementById('connText').textContent = `网关待命 [${proto}] · ${target} (${poll} ms)`;
     modal.classList.remove('open');
-    addLog('INFO', 'GATEWAY', `已配置目标 PLC ${ip}，扫描周期 ${poll} ms`);
+    addLog('INFO', 'GATEWAY', `已配置 ${proto} 目标 ${target}，扫描周期 ${poll} ms`);
   });
 
   // 2.5D Isometric Canvas Engine
@@ -445,7 +581,7 @@
     drawCallout(-0.4, 3.6, -2.6, 12, -74, 'ST03 · 六轴机器人', 'DB1.DBX2.1', '#38bdf8', ox, oy, s);
     drawCallout(1.8, 5.5, 0, 44, -18, 'ST04 · 视觉 AOI', '99.4% PASS', '#10b981', ox, oy, s);
     drawCallout(5.2, 0.7, 5.1, 26, 22, 'ST05 · 分拣料仓', `${state.totalCount} PCS`, '#10b981', ox, oy, s);
-    drawCallout(9.1, 1.1, -3.3, -24, 62, 'S7-1500 控制柜', state.estop ? 'E-STOP' : 'RUN', state.estop ? '#ef4444' : '#10b981', ox, oy, s);
+    drawCallout(9.1, 1.1, -3.3, -24, 62, '多协议主控网关', state.estop ? 'E-STOP' : 'S7 / Modbus / TCP', state.estop ? '#ef4444' : '#10b981', ox, oy, s);
   }
 
   function drawTrends() {
@@ -481,6 +617,7 @@
 
   // Init
   renderTagTable();
+  renderDeviceManager();
   renderLogs();
   setInterval(() => {
     if (document.getElementById('view-tags').classList.contains('active')) renderTagTable();

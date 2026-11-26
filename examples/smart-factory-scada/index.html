@@ -25,6 +25,11 @@
           <path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h10"/>
         </svg>
       </button>
+      <button class="rail-btn" data-view="devices" title="设备与数据管理" aria-label="设备与数据管理">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <rect x="2" y="3" width="20" height="8" rx="2"/><rect x="2" y="13" width="20" height="8" rx="2"/><circle cx="7" cy="7" r="1"/><circle cx="7" cy="17" r="1"/>
+        </svg>
+      </button>
       <button class="rail-btn" data-view="trends" title="多通道波形与 OEE" aria-label="多通道波形与 OEE">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
           <path d="M3 12h4l3-7 4 14 3-7h4"/>
@@ -61,7 +66,7 @@
         </div>
         <div class="seg-switch" role="tablist" aria-label="运行模式">
           <button id="modeOffline" class="seg-btn active" role="tab" aria-selected="true">离线仿真</button>
-          <button id="modeOnline" class="seg-btn" role="tab" aria-selected="false">连接 PLC</button>
+          <button id="modeOnline" class="seg-btn" role="tab" aria-selected="false">连接设备</button>
         </div>
       </div>
     </header>
@@ -141,14 +146,15 @@
       <section id="view-tags" class="view-pane">
         <div class="subview-wrap">
           <div class="subview-head">
-            <h2>PLC I/O 信号契约实时监视表 (DB1)</h2>
-            <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、地址或说明…" />
+            <h2>多协议 I/O 信号实时监视表</h2>
+            <input id="tagSearch" class="search-input" type="search" placeholder="筛选 Tag ID、设备、地址或说明…" />
           </div>
           <table class="data-table">
             <thead>
               <tr>
                 <th>Tag ID</th>
-                <th>PLC 地址</th>
+                <th>所属设备</th>
+                <th>协议地址</th>
                 <th>类型</th>
                 <th>读写方向</th>
                 <th>当前值</th>
@@ -157,6 +163,106 @@
             </thead>
             <tbody id="tagTableBody"></tbody>
           </table>
+        </div>
+      </section>
+
+      <!-- View 5: Device & Data Management -->
+      <section id="view-devices" class="view-pane">
+        <div class="subview-wrap">
+          <div class="subview-head">
+            <h2>设备接入与数据点位管理 (S7 / Modbus TCP / RTU / Raw TCP)</h2>
+            <div style="display:flex;gap:8px;">
+              <button id="btnExportManifest" class="btn">导出 twin.manifest.json</button>
+              <button id="btnAddDeviceToggle" class="btn ok">+ 新增设备通道</button>
+            </div>
+          </div>
+
+          <div class="mgr-grid">
+            <!-- Left: Multi-Protocol Device List + Add Form -->
+            <div class="mgr-col">
+              <div class="mgr-panel">
+                <div class="mgr-panel-head">
+                  <h3>已配置工业设备</h3>
+                  <span class="mono" style="font-size:11px;color:var(--muted);" id="devCountBadge">4 台设备</span>
+                </div>
+                <div id="deviceList" class="device-list"></div>
+              </div>
+
+              <div id="addDeviceCard" class="mgr-panel" style="display:none;">
+                <div class="mgr-panel-head">
+                  <h3>新增 / 配置通信设备</h3>
+                </div>
+                <div class="field-row">
+                  <label class="field">设备名称
+                    <input id="newDevName" placeholder="如：汇川变频器 INV-02" />
+                  </label>
+                  <label class="field">通信协议
+                    <select id="newDevProto">
+                      <option value="s7">Siemens S7comm</option>
+                      <option value="modbus-tcp">Modbus TCP</option>
+                      <option value="modbus-rtu">Modbus RTU (RS-485)</option>
+                      <option value="tcp-raw">Raw TCP/IP Socket</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="field-row" style="margin-top:8px;">
+                  <label class="field">连接端点 (IP:Port / COM)
+                    <input id="newDevEndpoint" placeholder="192.168.0.21:502 或 COM3" />
+                  </label>
+                  <label class="field">扫描周期
+                    <select id="newDevPoll">
+                      <option value="100">100 ms (10 Hz)</option>
+                      <option value="50">50 ms (20 Hz)</option>
+                    </select>
+                  </label>
+                </div>
+                <div class="modal-actions" style="margin-top:10px;">
+                  <button id="btnCancelAddDev" class="btn">取消</button>
+                  <button id="btnSaveNewDev" class="btn ok">保存设备</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right: Data Tag Mapping Manager -->
+            <div class="mgr-col">
+              <div class="mgr-panel">
+                <div class="mgr-panel-head">
+                  <h3>数据点位映射与新增</h3>
+                  <span class="mono" style="font-size:11px;color:var(--muted);" id="tagCountBadge">20 个点位</span>
+                </div>
+                <div class="tag-add-bar">
+                  <input id="newTagId" class="mini-input" placeholder="Tag ID (如 inv.freq)" />
+                  <select id="newTagDev" class="mini-input"></select>
+                  <input id="newTagAddr" class="mini-input" placeholder="地址 (如 40001 / DB1.DBD32)" />
+                  <select id="newTagType" class="mini-input">
+                    <option value="bool">bool</option>
+                    <option value="int16">int16</option>
+                    <option value="int32">int32</option>
+                    <option value="real">real</option>
+                  </select>
+                  <select id="newTagAccess" class="mini-input">
+                    <option value="r">R</option>
+                    <option value="w">W</option>
+                    <option value="rw">RW</option>
+                  </select>
+                  <button id="btnAddTag" class="btn ok">添加点位</button>
+                </div>
+                <table class="data-table" style="margin-top:12px;">
+                  <thead>
+                    <tr>
+                      <th>Tag ID</th>
+                      <th>设备</th>
+                      <th>地址</th>
+                      <th>类型</th>
+                      <th>方向</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="mgrTagBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -207,20 +313,60 @@
     </main>
   </div>
 
-  <!-- PLC Connection Modal -->
+  <!-- Multi-Protocol Device Connection Modal -->
   <div id="plcModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="plcModalTitle">
     <div class="modal-card">
-      <h3 id="plcModalTitle">连接西门子 S7 PLC / PLCSIM Advanced</h3>
-      <label class="field">目标设备 IP 地址
-        <input id="plcIp" value="192.168.0.10" spellcheck="false" />
+      <h3 id="plcModalTitle">连接工业设备 / 多协议网关</h3>
+      <label class="field">通信协议驱动
+        <select id="connProtocol">
+          <option value="s7">Siemens S7comm (1200 / 1500 / 300 / PLCSIM)</option>
+          <option value="modbus-tcp">Modbus TCP (以太网 502 端口)</option>
+          <option value="modbus-rtu">Modbus RTU (RS-485 串口)</option>
+          <option value="tcp-raw">Raw TCP/IP Socket (相机 / 扫码枪)</option>
+        </select>
       </label>
-      <div class="field-row">
-        <label class="field">Rack
-          <input id="plcRack" type="number" value="0" min="0" max="7" />
+      <div id="protoFieldsS7">
+        <label class="field">目标设备 IP 地址
+          <input id="plcIp" value="192.168.0.10" spellcheck="false" />
         </label>
-        <label class="field">Slot
-          <input id="plcSlot" type="number" value="1" min="0" max="31" />
-        </label>
+        <div class="field-row" style="margin-top:10px;">
+          <label class="field">Rack
+            <input id="plcRack" type="number" value="0" min="0" max="7" />
+          </label>
+          <label class="field">Slot
+            <input id="plcSlot" type="number" value="1" min="0" max="31" />
+          </label>
+        </div>
+      </div>
+      <div id="protoFieldsModbusTcp" style="display:none;">
+        <div class="field-row">
+          <label class="field">Modbus TCP IP
+            <input id="mbIp" value="192.168.0.21" spellcheck="false" />
+          </label>
+          <label class="field">Port / Unit ID
+            <input id="mbPort" value="502 / 1" spellcheck="false" />
+          </label>
+        </div>
+      </div>
+      <div id="protoFieldsRtu" style="display:none;">
+        <div class="field-row">
+          <label class="field">串口号 (COM)
+            <input id="rtuPort" value="COM3" spellcheck="false" />
+          </label>
+          <label class="field">波特率 / 站号
+            <input id="rtuBaud" value="115200 / 1" spellcheck="false" />
+          </label>
+        </div>
+      </div>
+      <div id="protoFieldsRaw" style="display:none;">
+        <div class="field-row">
+          <label class="field">Socket Host:Port
+            <input id="rawHost" value="192.168.0.30:9000" spellcheck="false" />
+          </label>
+          <label class="field">帧定界符
+            <input id="rawDelim" value="\n" spellcheck="false" />
+          </label>
+        </div>
       </div>
       <label class="field">通信扫描周期
         <select id="plcPollMs">
