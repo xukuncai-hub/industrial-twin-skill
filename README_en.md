@@ -67,14 +67,17 @@
 
 ---
 
-## 🤖 AI Skill Quick Generation
+## 🤖 AI Skill 1-Click Install & Usage
 
-This repository ships with a standardized **[`SKILL.md`](SKILL.md)** (containing industrial engineering hard rules and SOPs), compatible with Antigravity, Cursor, Claude Code, and Qoder:
+This repository includes a standardized **[`SKILL.md`](SKILL.md)** compatible with Antigravity, Cursor, Claude Code, and Qoder:
 
-- **Global Install**: `~/.gemini/config/skills/industrial-twin-skill` or `~/.agents/skills/industrial-twin-skill`
-- **Workspace Install**: `.agents/skills/industrial-twin-skill`
+- **Option 1 (Easiest · 1-Click Installer)**: Clone or download this repo and double-click **[`install.bat`](install.bat)** on Windows (or run `./install.sh` on macOS/Linux) to install into Antigravity, `.agents/skills`, and Claude Code global skill directories automatically.
+- **Option 2 (1-Command Direct Clone)**:
+  ```bash
+  git clone https://github.com/xukuncai-hub/industrial-twin-skill.git ~/.gemini/config/skills/industrial-twin-skill
+  ```
 
-Once mounted, provide your requirements or PLC tag table and the AI Agent will generate the **gateway config + TIA Portal SCL + 3D/2D frontend**:
+Start a new conversation and send your PLC/device tag table to generate the full project:
 
 ```text
 Follow SKILL.md strictly to generate a [Siemens S7-1200 Smart Sorting Line] Web Digital Twin project:

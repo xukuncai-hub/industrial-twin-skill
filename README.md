@@ -67,14 +67,17 @@
 
 ---
 
-## 🤖 AI Skill 极速生成
+## 🤖 AI Skill 一键安装与使用
 
-本仓库内置标准化的 **[`SKILL.md`](SKILL.md)**（含工业级工程红线与标准 SOP），遵循 Antigravity / Cursor / Claude Code / Qoder 的 Skill 规范：
+本仓库内置标准化的 **[`SKILL.md`](SKILL.md)**，兼容 Antigravity / Cursor / Claude Code / Qoder：
 
-- **全局挂载**：`~/.gemini/config/skills/industrial-twin-skill` 或 `~/.agents/skills/industrial-twin-skill`
-- **工作区挂载**：`.agents/skills/industrial-twin-skill`
+- **方式 1（Windows 最简单 · 双击即装）**：下载或克隆本仓库后，直接双击根目录的 **[`install.bat`](install.bat)**，自动同步安装到 Antigravity、`.agents/skills` 与 Claude Code 全局技能目录（macOS/Linux 运行 `./install.sh`）。
+- **方式 2（一行命令直接拉取到全局技能目录）**：
+  ```bash
+  git clone https://github.com/xukuncai-hub/industrial-twin-skill.git ~/.gemini/config/skills/industrial-twin-skill
+  ```
 
-挂载或直接将仓库引入 AI 编程工具后，发送需求或点表即可自动完成**网关配置 + 博途 SCL 生成 + 前端建模**：
+安装后新开对话，直接把设备需求或点表发给 AI 即可自动生成工程：
 
 ```text
 请严格遵循 SKILL.md 规范，帮我生成一套【西门子 S7-1200 智能分拣产线】Web 数字孪生工程：
