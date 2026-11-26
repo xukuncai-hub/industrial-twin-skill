@@ -108,7 +108,7 @@
         const cli = new window.TiaTwinClient({ manifest: miniManifest, url: 'ws://127.0.0.1:8765/ws', autoReconnect: false });
         cli.on('status', (s) => {
           if (s && s.state === 'online') {
-            cli.plcConfigure({ protocol: proto, ip: ep.split(':')[0], rack: 0, slot: 1, pollMs: Number(poll) }).catch(() => {});
+            cli.configurePlc({ protocol: proto, ip: ep.split(':')[0], rack: 0, slot: 1, pollMs: Number(poll) }).catch(() => {});
           }
         });
         cli.on('plc', (p) => {
