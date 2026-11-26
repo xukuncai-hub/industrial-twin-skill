@@ -223,6 +223,7 @@ industrial-twin-skill/
 ├── SKILL.md                          # AI Agent Skill 核心规范、工程红线与标准 SOP
 ├── README.md / README_en.md          # 中英文项目文档
 ├── examples/
+│   ├── README.md                     # 行业数字孪生示例索引
 │   └── smt-pick-and-place/           # SMT 高速贴片机完整落地示例 (3D / 上位机 / Blender / SCL / 网关)
 ├── references/                       # 建模、CAD 导入、协议扩展、WS 契约、博途与部署指南
 ├── scripts/

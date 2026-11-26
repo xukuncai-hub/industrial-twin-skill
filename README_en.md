@@ -223,6 +223,7 @@ industrial-twin-skill/
 ├── SKILL.md                          # AI Agent Skill specification, hard rules & SOP
 ├── README.md / README_en.md          # Chinese & English documentation
 ├── examples/
+│   ├── README.md                     # Industrial Digital Twin Examples Index
 │   └── smt-pick-and-place/           # SMT Pick & Place Line Showcase (3D / SCADA / Blender / SCL / Gateway)
 ├── references/                       # Modeling, CAD import, protocol extension, WS contract & TIA guides
 ├── scripts/
