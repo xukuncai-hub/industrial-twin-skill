@@ -37,8 +37,33 @@
 <div align="center">
   <img src="assets/hero-preview.png" width="94%" alt="2.5D Industrial Digital Twin & Live SCADA Telemetry Interface" />
   <br/>
-  <sub>▲ 2.5D Isometric Digital Twin & Real-Time PLC Telemetry SCADA (See more industry showcases in <a href="examples"><code>examples/</code></a>)</sub>
+  <sub>▲ 2.5D Isometric Digital Twin & Real-Time PLC Telemetry SCADA (ISA-101 Industrial HMI Design)</sub>
 </div>
+
+### 📦 Industry Showcases (See [`examples/`](examples))
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="examples/smart-factory-scada">
+        <img src="examples/smart-factory-scada/preview.png" width="100%" alt="Smart Factory EV Drive Assembly 2.5D SCADA" />
+      </a>
+      <br/>
+      <b><a href="examples/smart-factory-scada">EV Drive Assembly Line (2.5D Multi-View SCADA)</a></b>
+      <br/>
+      <sub>6-Station Closed-Loop · 20-Tag DB1 Monitor · Live Trends · Audit Log</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="examples/smt-pick-and-place">
+        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT Pick & Place 3D Digital Twin" />
+      </a>
+      <br/>
+      <b><a href="examples/smt-pick-and-place">SMT Pick &amp; Place Line (3D + Blender)</a></b>
+      <br/>
+      <sub>7-Station Line · Zero-Clipping Three.js Kinematics · Blender Script</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -223,6 +248,7 @@ industrial-twin-skill/
 ├── README.md / README_en.md          # Chinese & English documentation
 ├── examples/
 │   ├── README.md                     # Industrial Digital Twin Examples Index
+│   ├── smart-factory-scada/          # EV Drive Assembly Line (Large-Scale Multi-View 2.5D SCADA)
 │   └── smt-pick-and-place/           # SMT Pick & Place Line Showcase (3D / SCADA / Blender / SCL / Gateway)
 ├── references/                       # Modeling, CAD import, protocol extension, WS contract & TIA guides
 ├── scripts/

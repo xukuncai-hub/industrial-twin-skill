@@ -2,6 +2,12 @@
 
 本示例位于 `industrial-twin-skill/examples/smart-factory-scada`，严格遵循 [`references/ui-beautification-guide.md`](../../references/ui-beautification-guide.md)（融合 `frontend-design` / `ui-ux-pro-max` / `impeccable` + ISA-101 工业 HMI 规范）构建，适用于多工位、多视图的大型工业上位机项目。
 
+<div align="center">
+  <img src="preview.png" width="96%" alt="新能源电驱智能总装线 2.5D 数字孪生 SCADA 界面" />
+  <br/>
+  <sub>▲ 6 工位 2.5D 数字孪生监控、实时遥测底栏与 ISA-101 深色工控台界面</sub>
+</div>
+
 ## ✨ 核心特性
 
 - **四视图大型 SCADA 架构**：左侧极简图标导航栏支持一键切换：

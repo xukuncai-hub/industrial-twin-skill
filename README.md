@@ -37,8 +37,33 @@
 <div align="center">
   <img src="assets/hero-preview.png" width="94%" alt="2.5D 工业数字孪生与实时数据上位机界面" />
   <br/>
-  <sub>▲ 2.5D 等轴测数字孪生与实时 PLC 数据上位机（更多行业落地示例见 <a href="examples"><code>examples/</code></a>）</sub>
+  <sub>▲ 2.5D 等轴测数字孪生与实时 PLC 数据上位机（遵循 ISA-101 工业 HMI 视觉规范）</sub>
 </div>
+
+### 📦 行业落地示例矩阵（见 [`examples/`](examples)）
+
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="examples/smart-factory-scada">
+        <img src="examples/smart-factory-scada/preview.png" width="100%" alt="新能源电驱智能总装线 2.5D SCADA" />
+      </a>
+      <br/>
+      <b><a href="examples/smart-factory-scada">新能源电驱智能总装线 (2.5D 多视图 SCADA)</a></b>
+      <br/>
+      <sub>6 工位闭环仿真 · 20 点位 DB1 监视表 · 实时波形 · 审计日志</sub>
+    </td>
+    <td width="50%" align="center">
+      <a href="examples/smt-pick-and-place">
+        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT 高速贴片机生产线 3D 数字孪生" />
+      </a>
+      <br/>
+      <b><a href="examples/smt-pick-and-place">SMT 高速贴片机生产线 (3D + Blender)</a></b>
+      <br/>
+      <sub>7 工位产线 · Three.js 零穿模运动学 · Blender 建模脚本</sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -223,6 +248,7 @@ industrial-twin-skill/
 ├── README.md / README_en.md          # 中英文项目文档
 ├── examples/
 │   ├── README.md                     # 行业数字孪生示例索引
+│   ├── smart-factory-scada/          # 新能源电驱智能总装线 (大型多视图 2.5D SCADA)
 │   └── smt-pick-and-place/           # SMT 高速贴片机完整落地示例 (3D / 上位机 / Blender / SCL / 网关)
 ├── references/                       # 建模、CAD 导入、协议扩展、WS 契约、博途与部署指南
 ├── scripts/
