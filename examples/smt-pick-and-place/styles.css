@@ -1,48 +1,7 @@
-:root,
-[data-theme="isa-gray"] {
-  --bg-dark: #d8dde4;
-  --panel-bg: rgba(249, 250, 251, 0.92);
-  --surface-sub: #f1f5f9;
-  --panel-border: #cbd5e1;
-  --text-main: #111827;
-  --text-muted: #4b5563;
-  --cyan: #0369a1;
-  --blue: #0284c7;
-  --green: #059669;
-  --amber: #d97706;
-  --red: #dc2626;
-  --font-mono: "Fira Code", "Cascadia Code", Consolas, monospace;
-}
-[data-theme="swiss-light"] {
-  --bg-dark: #f1f5f9;
-  --panel-bg: rgba(255, 255, 255, 0.94);
-  --surface-sub: #f8fafc;
-  --panel-border: #e2e8f0;
-  --text-main: #0f172a;
-  --text-muted: #475569;
-  --cyan: #0284c7;
-  --blue: #0284c7;
-  --green: #059669;
-  --amber: #d97706;
-  --red: #dc2626;
-}
-[data-theme="warm-cad"] {
-  --bg-dark: #eae8e1;
-  --panel-bg: rgba(255, 255, 255, 0.94);
-  --surface-sub: #f5f5f4;
-  --panel-border: #d6d3d1;
-  --text-main: #1c1917;
-  --text-muted: #57534e;
-  --cyan: #0284c7;
-  --blue: #0284c7;
-  --green: #059669;
-  --amber: #d97706;
-  --red: #dc2626;
-}
-[data-theme="dark-control"] {
+:root {
   --bg-dark: #0e131b;
-  --panel-bg: rgba(20, 27, 39, 0.88);
-  --surface-sub: rgba(15, 23, 42, 0.72);
+  --panel-bg: rgba(17, 24, 36, 0.88);
+  --surface-sub: rgba(12, 18, 28, 0.78);
   --panel-border: rgba(255, 255, 255, 0.1);
   --text-main: #eef2f6;
   --text-muted: #8b98a9;
@@ -51,6 +10,7 @@
   --green: #10b981;
   --amber: #f59e0b;
   --red: #ef4444;
+  --font-mono: "Fira Code", "Cascadia Code", Consolas, monospace;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }

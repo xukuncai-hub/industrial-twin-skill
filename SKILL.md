@@ -590,7 +590,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - [ ] 真实 PLCSIM / 实体 PLC：PLC 状态、TIA 监视表、传感器回写、PLC 输出驱动网页、计数/故障。
 - [ ] 页面没有硬编码地址；没有在真实模式重复 PLC 逻辑；没有逐帧写 PLC；未暴露网关 URL/Token。
 - [ ] 严格遵守禁止向物理 `%I` 区直写规范；严格遵守 Windows 11 24H2 零命令行绿色交付规范。
-- [ ] **多风格主题与 HMI 美化（禁止老是只用暗黑风）**：严格遵循 `references/ui-beautification-guide.md`，按现场光照与行业需求在 `swiss-light`（瑞士极简浅色）、`isa-gray`（ISA-101 标准中性灰）、`warm-cad`（精密暖灰工程台）与 `dark-control`（深色夜间）中合理选型，保证视口主导、无套娃圆角卡片墙、等宽数字对齐。
+- [ ] **多风格主题与 HMI 美化（设计之初选定唯一协调风格，禁止千篇一律暗黑风，禁止硬加换肤控件）**：严格遵循 `references/ui-beautification-guide.md`，按现场光照与行业需求在 `swiss-light`（瑞士极简浅色）、`isa-gray`（ISA-101 标准中性灰）、`warm-cad`（精密暖灰工程台）与 `dark-control`（深色夜间）中选定一套，确保 2D/2.5D/3D 画布场景与外围 HUD 色调完全统一、视口主导、无套娃圆角卡片墙、等宽数字对齐。
 - [ ] **全协议与设备/数据管理**：连接界面不得局限于 S7，支持多协议（`S7comm` / `Modbus TCP` / `Modbus RTU` / `Raw TCP`）动态参数切换；中大型项目配备独立的“设备接入与数据点位管理”视图并支持导出 `twin.manifest.json`（参考 `examples/smart-factory-scada`）。
 - [ ] 明确标注仿真用途，未宣称未经实测的 PLC 联调结果。
 

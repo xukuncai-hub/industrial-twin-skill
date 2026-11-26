@@ -16,12 +16,6 @@
         </div>
       </div>
       <div class="topbar-actions">
-        <select id="themeSelect" class="theme-select" aria-label="界面主题">
-          <option value="swiss-light" selected>瑞士浅色</option>
-          <option value="isa-gray">ISA 中性灰</option>
-          <option value="warm-cad">精密暖灰</option>
-          <option value="dark-control">深色控制室</option>
-        </select>
         <div class="mode-switch" role="tablist" aria-label="仿真模式">
           <button id="modeOffline" class="mode-btn active" role="tab" aria-selected="true">离线仿真</button>
           <button id="modeOnline" class="mode-btn" role="tab" aria-selected="false">连接设备</button>
@@ -129,9 +123,5 @@
   </div>
   <script src="tia-twin-client.js"></script>
   <script src="app.js"></script>
-  <script>
-    const ts = document.getElementById('themeSelect');
-    if (ts) ts.addEventListener('change', () => { document.documentElement.dataset.theme = ts.value; });
-  </script>
 </body>
 </html>

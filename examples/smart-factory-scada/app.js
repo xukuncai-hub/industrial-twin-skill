@@ -298,13 +298,7 @@
   });
 
   // Multi-Protocol Modal
-  const themeSelect = document.getElementById('themeSelect');
-  if (themeSelect) {
-    themeSelect.addEventListener('change', () => {
-      document.documentElement.dataset.theme = themeSelect.value;
-    });
-  }
-  const isDarkTheme = () => document.documentElement.dataset.theme === 'dark-control';
+  const isDarkTheme = () => false;
   const modal = document.getElementById('plcModal');
   const protoSel = document.getElementById('connProtocol');
   protoSel.addEventListener('change', () => {

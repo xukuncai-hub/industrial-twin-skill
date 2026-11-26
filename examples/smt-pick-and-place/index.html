@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="isa-gray">
+<html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -47,12 +47,6 @@
     </div>
 
     <div class="topbar-ctrls">
-      <select id="themeSelect" class="theme-select" aria-label="界面主题">
-        <option value="isa-gray" selected>ISA 中性灰</option>
-        <option value="swiss-light">瑞士浅色</option>
-        <option value="warm-cad">精密暖灰</option>
-        <option value="dark-control">深色控制室</option>
-      </select>
       <button class="btn" id="btn-toggle-lang" title="Switch Language / 切换语言">English</button>
       <button class="btn" id="btn-toggle-xray" title="切换设备钣金外壳半透明透视">外壳透视</button>
       <button class="btn" id="btn-toggle-tags" title="显示或隐藏3D设备标签">工位标注</button>
@@ -173,9 +167,5 @@
 </div>
 
 <script src="app.js"></script>
-<script>
-  const ts = document.getElementById('themeSelect');
-  if (ts) ts.addEventListener('change', () => { document.documentElement.dataset.theme = ts.value; });
-</script>
 </body>
 </html>
