@@ -584,6 +584,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - [ ] 真实 PLCSIM / 实体 PLC：PLC 状态、TIA 监视表、传感器回写、PLC 输出驱动网页、计数/故障。
 - [ ] 页面没有硬编码地址；没有在真实模式重复 PLC 逻辑；没有逐帧写 PLC；未暴露网关 URL/Token。
 - [ ] 严格遵守禁止向物理 `%I` 区直写规范；严格遵守 Windows 11 24H2 零命令行绿色交付规范。
+- [ ] 前端界面严格遵循 `references/ui-beautification-guide.md` 工业 HMI 美化规范（视口占主导、ISA-101 语义色、无套娃圆角卡片墙、等宽数字对齐）。
 - [ ] 明确标注仿真用途，未宣称未经实测的 PLC 联调结果。
 
 ## 11. 边界
@@ -595,6 +596,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 
 ## 12. 资源
 
+- `references/ui-beautification-guide.md`：工业 Web SCADA / 数字孪生 HTML 美化子技能（ISA-101 工业视觉规范、反 AI 模板红线与截图自检流程，生成前端前必读）。
 - `references/protocol-extension-guide.md`：多工业通信协议 (Modbus TCP/RTU/RS485/TCP-IP) 接入与 AI 自主开发扩展规范指南。
 - `references/blender-industrial-modeling.md`：Blender 替代 NX/SolidWorks 工业建模实战、草图约束、六大铁律与 GLB 导出指南。
 - `references/cad-import-guide.md`：工业 3D 资产 (CAD / Blender) 模型导出、节点命名契约与 PLC 信号绑定指南。

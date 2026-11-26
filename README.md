@@ -196,6 +196,7 @@ python scripts/make_project.py --out ./my-sorting-line --mode html
 | 规范文档 | 说明 |
 | :--- | :--- |
 | [`references/contract.md`](references/contract.md) | `tia-web-twin/1` WebSocket 通信协议与 I/O 契约规范 |
+| [`references/ui-beautification-guide.md`](references/ui-beautification-guide.md) | 工业上位机 HTML/UI 美化子技能（ISA-101 视觉规范与反模板指南） |
 | [`references/blender-industrial-modeling.md`](references/blender-industrial-modeling.md) | Blender 工业级机电建模六大铁律与 `.glb` 导出规范 |
 | [`references/cad-import-guide.md`](references/cad-import-guide.md) | 外部 3D CAD 资产轻量化导入与节点绑定指南 |
 | [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) | `BaseProtocolBackend` 多协议扩展开发指南 |
