@@ -1,9 +1,9 @@
 ---
 name: industrial-twin-skill
-description: 生成可直接连接工业硬件与仿真器的网页产线数字孪生。原生多协议支持（西门子 S7-1200/1500/300 S7comm、Modbus TCP、Modbus RTU RS-485、Raw TCP/IP Socket）及 AI 自主扩展新协议驱动（三菱MC/欧姆龙FINS/MQTT）。支持 HTML 原生建模与 Blender 工业级轻量化建模（全面替代 Siemens NX/SolidWorks）。通过固定 twin.manifest.json 契约、浏览器 WebSocket SDK 和统一网关，把网页传感器回写给真实下位机。触发词：数字孪生、产线仿真、真实PLC、实体PLC、S7-1200、S7-1500、PLCSIM Advanced、博途仿真、S7comm、虚拟调试、Modbus、Modbus-TCP、Modbus-RTU、RS485、TCPIP、三菱MC、欧姆龙FINS、多工业协议、Blender、Blender工业建模、Blender替代CAD、Blender替代NX、Blender数字孪生、GLTF模型绑定、GLB导入。
+description: 生成可直接连接工业硬件与仿真器的网页产线数字孪生与工业 SCADA 上位机。原生多协议支持（西门子 S7-1200/1500/300 S7comm、Modbus TCP、Modbus RTU RS-485、Raw TCP/IP Socket）及 AI 自主扩展新协议驱动（三菱MC/欧姆龙FINS/MQTT）。支持 HTML 原生建模（2.5D/组态与数据）与 Blender 工业级轻量化建模，严禁暗黑风，严格遵循 ISA-101 浅色/中性灰规范。触发词：数字孪生、产线仿真、组态、上位机、真实PLC、实体PLC、S7-1200、S7-1500、PLCSIM Advanced、博途仿真、S7comm、虚拟调试、Modbus、Modbus-TCP、Modbus-RTU、RS485、TCPIP、三菱MC、欧姆龙FINS、多工业协议、Blender、GLB导入、digital twin、SCADA、HMI、TIA Portal、PLC。
 ---
 
-# Siemens S7 Web Twin (S7comm: 实体 PLC + PLCSIM)
+# Industrial Twin Skill (多协议工业数字孪生与 SCADA 上位机)
 
 ## 1. 这个 skill 解决什么
 
@@ -23,11 +23,11 @@ description: 生成可直接连接工业硬件与仿真器的网页产线数字�
 
 ```text
 AI Agent（后台全自动执行）:
-  产线机电分析 ➔ 生成 manifest ➔ 自动校验 ➔ 自动生成 TwinIO.scl ➔ 准备中文双击脚本/单文件 exe
+  产线机电分析 ➔ 生成 manifest ➔ 自动校验 ➔ 自动生成 TwinIO.scl ➔ 准备双击启动器 / 目录版 EXE
                                        │
                                        ▼ 交付给人类用户
-最终用户（零命令行使用）:
-  ① 双击启动脚本 / exe ➔ ② 博途导入 SCL 鼠标生成块 ➔ ③ 浏览器右上角输入 PLC IP 点击连接
+最终用户（零命令行、零门槛使用）:
+  ① 双击 start.bat 或 TIAWebTwin.exe ➔ ② 网页内选机型预设“一键连接” ➔ ③ 立即运行（下次自动记住配置）
 ```
 
 ## 快速开始
@@ -98,7 +98,7 @@ project/
 ├── runtime/                    # 官方绿色免安装 Python 运行时（内置 snap7 与 websockets，开箱即用）
 ├── index.html                 # 孪生主页面（2D/3D 画布 + 双模式操作台）
 ├── app.js                     # 孪生场景机构动画、物理碰撞感应、状态同步
-├── styles.css                 # 工业深色风格样式
+├── styles.css                 # 工业浅色/中性灰极简风格样式（严禁暗黑风）
 ├── tia-twin-client.js         # 固定浏览器 SDK，不要改动协议
 ├── twin.manifest.json         # 信号字典、多 DB 地址、bindings 契约
 ├── TwinIO.scl                 # 由 AI 自动生成好的 SCL 数据块外部源文件（含非优化声明与中文注释）
@@ -609,10 +609,12 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - `references/cad-import-guide.md`：工业 3D 资产 (CAD / Blender) 模型导出、节点命名契约与 PLC 信号绑定指南。
 - `references/contract.md`：manifest 与 WebSocket 协议完整定义。
 - `references/tia-setup-guide.md`：PLCSIM Advanced / TIA / DB / 排错。
-- `references/deployment.md`：双击启动、Windows 单文件 exe、Windows 服务三种部署方式。
+- `references/deployment.md`：双击启动（`start.bat`）、目录版绿色 EXE（`--onedir`）、Windows 服务三种部署方式。
 - `scripts/inspect_glb.py`：零依赖纯 Python 3D 模型节点树与契约自检工具，一键生成 bindings 配置。
-- `examples/smart-factory-scada/`：大型多视图 2.5D 数字孪生 SCADA 示例（含多协议设备与数据管理界面、实时波形与审计日志）。
-- `assets/template/`：2D 操作台示例（离线数据编辑 + PLC 连接）。
+- `scripts/smoke_test.py`：一键验证所有示例 manifest 与脚手架生成结果的冒烟测试脚本。
+- `examples/smart-factory-scada/`：大型多视图 2.5D 数字孪生 SCADA 示例（`swiss-light` 浅色主题 + 多协议设备与数据管理界面 + 实时波形）。
+- `examples/smt-pick-and-place/`：SMT 高速贴片产线组态与数据 SCADA 示例（`warm-cad` 精密暖灰 + 工艺组态图 + 飞达/8 温区监控）。
+- `assets/template/`：多主题浅色/中性灰 + 多协议 HTML 上位机模板（离线仿真 + 一键连接设备）。
 - `assets/three-demo/`：3D 产线示例，使用同一 manifest/SDK/网关。
 - `assets/three-demo/vendor/GLTFLoader.js`：零依赖纯离线工业 GLTF/GLB 模型加载器。
 - `scripts/run_twin.py`：一条命令启动页面 + 网关。
