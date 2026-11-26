@@ -77,17 +77,16 @@
   git clone https://github.com/xukuncai-hub/industrial-twin-skill.git ~/.gemini/config/skills/industrial-twin-skill
   ```
 
-安装后新开对话，直接把设备需求或点表发给 AI 即可自动生成工程：
+安装后新开对话，**直接把你现有的 PLC 变量表 / Modbus 寄存器表 / 博途截图甩给 AI**（AI 会原样按你的地址生成上位机，不改你原有 PLC 程序；如果是从零新建测试工程，也会一并附带博途 SCL）：
 
 ```text
-请严格遵循 SKILL.md 规范，帮我生成一套【西门子 S7-1200 智能分拣产线】Web 数字孪生工程：
-1. 建模模式：HTML 原生建模（离线单文件可开） / 或 Blender GLB 模式
-2. PLC IP：192.168.0.1，DB1 点表如下：
-   - DB1.DBX0.0：系统启动（读写）
-   - DB1.DBX0.1：传送带运行（只读）
-   - DB1.DBX1.0：光电传感器 PE1（网页物理引擎触发后回写 PLC）
-   - DB1.DBD4：实时产量计数（只读）
-3. 同步生成可直接导入博途的 TwinIO.scl 与 TwinDemoLogic.scl。
+请严格遵循 SKILL.md 规范，按我下面这份现有变量表生成工业上位机（不要改我的地址）：
+- 设备类型：西门子 S7-1200 (192.168.0.10) / 或 Modbus TCP (192.168.0.21:502)
+- 变量表：
+  1. DB10.DBX0.0  系统启动（读写）
+  2. Q0.0         传送带运行反馈（只读）
+  3. DB10.DBX1.0  光电传感器 PE1（网页触发后回写给 PLC）
+  4. DB10.DBD4    实时产量计数（只读）
 ```
 
 > [!IMPORTANT]

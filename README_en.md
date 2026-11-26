@@ -77,17 +77,16 @@ This repository includes a standardized **[`SKILL.md`](SKILL.md)** compatible wi
   git clone https://github.com/xukuncai-hub/industrial-twin-skill.git ~/.gemini/config/skills/industrial-twin-skill
   ```
 
-Start a new conversation and send your PLC/device tag table to generate the full project:
+Start a new conversation and **paste your existing PLC tag table, Modbus register list, or TIA Portal screenshot** (AI maps your exact addresses without altering your existing PLC program; if starting from scratch, it also generates TIA SCL files):
 
 ```text
-Follow SKILL.md strictly to generate a [Siemens S7-1200 Smart Sorting Line] Web Digital Twin project:
-1. Modeling mode: Native HTML modeling (single-file offline) or Blender GLB mode
-2. PLC IP: 192.168.0.1, DB1 tag table:
-   - DB1.DBX0.0: System Start (RW)
-   - DB1.DBX0.1: Conveyor Running (R)
-   - DB1.DBX1.0: Photoelectric Sensor PE1 (written back to PLC by Web physics engine)
-   - DB1.DBD4: Live Production Count (R)
-3. Generate TwinIO.scl and TwinDemoLogic.scl ready for TIA Portal import.
+Follow SKILL.md strictly and generate an industrial SCADA / Digital Twin for my existing tag table (keep my addresses unchanged):
+- Device: Siemens S7-1200 (192.168.0.10) or Modbus TCP (192.168.0.21:502)
+- Tag Table:
+  1. DB10.DBX0.0  System Start (RW)
+  2. Q0.0         Conveyor Running (R)
+  3. DB10.DBX1.0  Photoelectric Sensor PE1 (written back to PLC)
+  4. DB10.DBD4    Live Production Count (R)
 ```
 
 > [!IMPORTANT]
