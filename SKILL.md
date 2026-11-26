@@ -544,6 +544,16 @@ python tia_gateway.py --config gateway.config.json --wait-plc
       1. **多协议设备通道管理**：查看、启用/停用、新增不同协议的工业设备（PLC、变频器、RS-485 仪表、视觉相机等）；
       2. **跨设备数据点位映射管理**：按设备绑定与增删 `Tag ID`、协议地址、数据类型与读写权限（`R` / `W` / `RW`）；
       3. **契约导出**：支持一键导出更新后的 `twin.manifest.json`。标准参考实现见 `examples/smart-factory-scada/`。
+20. **实机联调排错四条黄金经验（源自真实踩坑总结）**：
+    - **经验 A（`TiaTwinClient` 事件与方法名严禁写错）**：
+      - WebSocket 连上网关时 `cli.on('status', s)` 触发的是 **`s.state === 'online'`**（不是 `'connected'`）；此时再调用 **`cli.configurePlc({ protocol, ip, rack, slot, pollMs })`**（不是 `plcConfigure`）。
+      - 实时数据更新监听 **`cli.on('values', ({ values }) => ...)`** 或 **`cli.on('tag:<id>', val => ...)`**（没有 `'change'` 事件）；断开连接调用 **`cli.disconnect()`**（不是 `close()`）。
+    - **经验 B（`start.bat` 必须等端口 `LISTENING` 再弹浏览器）**：
+      - 便携 Python 启动 `run_twin.py` 需要 2~3 秒；`start.bat` 必须传入 `--no-browser` 并在循环中检测 `netstat` 直到 `8000` 端口处于 `LISTENING` 后再 `start "" "http://127.0.0.1:8000"`，彻底杜绝浏览器先打开导致的 `ERR_CONNECTION_REFUSED`。
+    - **经验 C（同字节混排读写位的软件级根治：原子单比特写入 `S7WLBit`）**：
+      - 当用户已有 DB 块把输入位与输出位排在同一字节（如 `DB1.DBX0.0`/`0.1`/`0.2`）且不便修改 PLC 程序时，`S7Backend.write` 必须使用 S7 原生单比特写入 `write_area(area, db, byte * 8 + bit, bytearray([1/0]), 1)`，避免整字节读-改-写把 PLC 刚复位的输出位覆盖回 `1`。
+    - **经验 D（用户现有变量表绝对优先）**：
+      - 遇到用户直接给出博途 DB 截图或点表时，必须 100% 原样映射用户地址，不得擅自改地址。
 
 ## 9. AI Agent 交付规范与最终回复模板 (Agent Delivery Response Standard)
 
