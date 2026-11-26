@@ -196,7 +196,7 @@ python scripts/make_project.py --out ./my-sorting-line --mode html
 | Reference Guide | Description |
 | :--- | :--- |
 | [`references/contract.md`](references/contract.md) | `tia-web-twin/1` WebSocket protocol & I/O manifest specification |
-| [`references/ui-beautification-guide.md`](references/ui-beautification-guide.md) | Industrial SCADA HTML/UI beautification sub-skill (ISA-101 visual & anti-slop guide) |
+| [`references/ui-beautification-guide.md`](references/ui-beautification-guide.md) | Industrial SCADA HTML beautification sub-skill (fusing `frontend-design` / `ui-ux-pro-max` / `impeccable` + ISA-101) |
 | [`references/blender-industrial-modeling.md`](references/blender-industrial-modeling.md) | Blender industrial modeling SOP & 6 hard rules for `.glb` export |
 | [`references/cad-import-guide.md`](references/cad-import-guide.md) | External 3D CAD asset import, decimation & binding guide |
 | [`references/protocol-extension-guide.md`](references/protocol-extension-guide.md) | `BaseProtocolBackend` multi-protocol extension guide |

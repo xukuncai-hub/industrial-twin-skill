@@ -596,7 +596,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 
 ## 12. 资源
 
-- `references/ui-beautification-guide.md`：工业 Web SCADA / 数字孪生 HTML 美化子技能（ISA-101 工业视觉规范、反 AI 模板红线与截图自检流程，生成前端前必读）。
+- `references/ui-beautification-guide.md`：工业 Web SCADA / 数字孪生 HTML 美化子技能（融合 GitHub 开源 `anthropics/frontend-design`、`nextlevelbuilder/ui-ux-pro-max-skill` 与 `pbakaus/impeccable` 规范 + ISA-101 工业 HMI 标准，生成前端前必读）。
 - `references/protocol-extension-guide.md`：多工业通信协议 (Modbus TCP/RTU/RS485/TCP-IP) 接入与 AI 自主开发扩展规范指南。
 - `references/blender-industrial-modeling.md`：Blender 替代 NX/SolidWorks 工业建模实战、草图约束、六大铁律与 GLB 导出指南。
 - `references/cad-import-guide.md`：工业 3D 资产 (CAD / Blender) 模型导出、节点命名契约与 PLC 信号绑定指南。
