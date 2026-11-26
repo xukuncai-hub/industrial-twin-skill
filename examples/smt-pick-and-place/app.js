@@ -55,6 +55,30 @@
   });
 
   const modal = document.getElementById('connModal');
+  const presets = {
+    's7-1500': { proto: 's7', ep: '192.168.0.10', poll: '100' },
+    'plcsim': { proto: 's7', ep: '192.168.0.1', poll: '100' },
+    'modbus-tcp': { proto: 'modbus-tcp', ep: '192.168.0.21:502', poll: '100' },
+    'modbus-rtu': { proto: 'modbus-rtu', ep: 'COM3', poll: '100' }
+  };
+  document.querySelectorAll('[data-preset]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const p = presets[btn.dataset.preset];
+      if (!p) return;
+      document.getElementById('connProtocol').value = p.proto;
+      document.getElementById('connEndpoint').value = p.ep;
+      document.getElementById('connPoll').value = p.poll;
+    });
+  });
+  try {
+    const saved = JSON.parse(localStorage.getItem('twin_last_conn') || 'null');
+    if (saved) {
+      document.getElementById('connProtocol').value = saved.proto || 's7';
+      document.getElementById('connEndpoint').value = saved.ep || '192.168.0.1';
+      document.getElementById('connPoll').value = saved.poll || '100';
+    }
+  } catch (_) {}
+
   document.getElementById('btnOpenConn').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('modeOnline').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('modeOffline').addEventListener('click', () => {
@@ -68,10 +92,23 @@
     const proto = document.getElementById('connProtocol').value;
     const ep = document.getElementById('connEndpoint').value.trim() || '192.168.0.1';
     const poll = document.getElementById('connPoll').value;
+    try { localStorage.setItem('twin_last_conn', JSON.stringify({ proto, ep, poll })); } catch (_) {}
     document.getElementById('modeOnline').classList.add('active');
     document.getElementById('modeOffline').classList.remove('active');
     document.getElementById('connDot').className = 'status-dot warn';
-    document.getElementById('connText').textContent = `网关待命 [${proto}] · ${ep} (${poll} ms)`;
+    document.getElementById('connText').textContent = `正在连接 [${proto}] · ${ep} (${poll} ms)`;
+    if (window.TiaTwinClient) {
+      try {
+        const cli = new window.TiaTwinClient('ws://127.0.0.1:8765/ws');
+        cli.onStatus = (s) => {
+          if (s && s.connected) {
+            document.getElementById('connDot').className = 'status-dot';
+            document.getElementById('connText').textContent = `已连通 [${proto}] · ${ep} (${poll} ms)`;
+          }
+        };
+        cli.connect({ protocol: proto, ip: ep.split(':')[0], pollMs: Number(poll) });
+      } catch (_) {}
+    }
     modal.classList.remove('open');
   });
 

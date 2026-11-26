@@ -316,7 +316,13 @@
   <!-- Multi-Protocol Device Connection Modal -->
   <div id="plcModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="plcModalTitle">
     <div class="modal-card">
-      <h3 id="plcModalTitle">连接工业设备 / 多协议网关</h3>
+      <h3 id="plcModalTitle">一键连接 PLC / 工业设备</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <button type="button" class="btn" data-preset="s7-1500">西门子 S7-1200/1500</button>
+        <button type="button" class="btn" data-preset="plcsim">PLCSIM Adv 仿真</button>
+        <button type="button" class="btn" data-preset="modbus-tcp">Modbus TCP (502)</button>
+        <button type="button" class="btn" data-preset="modbus-rtu">RS-485 串口 (COM3)</button>
+      </div>
       <label class="field">通信协议驱动
         <select id="connProtocol">
           <option value="s7">Siemens S7comm (1200 / 1500 / 300 / PLCSIM)</option>

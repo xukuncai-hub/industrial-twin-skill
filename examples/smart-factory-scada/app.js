@@ -301,12 +301,23 @@
   const isDarkTheme = () => false;
   const modal = document.getElementById('plcModal');
   const protoSel = document.getElementById('connProtocol');
-  protoSel.addEventListener('change', () => {
+  const syncProtoFields = () => {
     const v = protoSel.value;
     document.getElementById('protoFieldsS7').style.display = v === 's7' ? 'block' : 'none';
     document.getElementById('protoFieldsModbusTcp').style.display = v === 'modbus-tcp' ? 'block' : 'none';
     document.getElementById('protoFieldsRtu').style.display = v === 'modbus-rtu' ? 'block' : 'none';
     document.getElementById('protoFieldsRaw').style.display = v === 'tcp-raw' ? 'block' : 'none';
+  };
+  protoSel.addEventListener('change', syncProtoFields);
+  document.querySelectorAll('[data-preset]').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const k = btn.dataset.preset;
+      if (k === 's7-1500') { protoSel.value = 's7'; document.getElementById('plcIp').value = '192.168.0.10'; }
+      else if (k === 'plcsim') { protoSel.value = 's7'; document.getElementById('plcIp').value = '192.168.0.1'; }
+      else if (k === 'modbus-tcp') { protoSel.value = 'modbus-tcp'; document.getElementById('mbIp').value = '192.168.0.21'; }
+      else if (k === 'modbus-rtu') { protoSel.value = 'modbus-rtu'; document.getElementById('rtuPort').value = 'COM3'; }
+      syncProtoFields();
+    });
   });
   document.getElementById('btnOpenPlcModal').addEventListener('click', () => modal.classList.add('open'));
   document.getElementById('modeOnline').addEventListener('click', () => modal.classList.add('open'));
