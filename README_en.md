@@ -35,11 +35,9 @@
 > **Not a "fake looping animation"** — the frontend strictly follows the industrial I/O contract: PLC output `1` moves, `0` stops. Supports **bidirectional write-back from Web/mobile to PLC**, and virtual photoelectric sensors automatically write back to the PLC when 3D workpieces trigger raycast probes.
 
 <div align="center">
-  <a href="examples/smt-pick-and-place">
-    <img src="examples/smt-pick-and-place/preview.png" width="92%" alt="SMT High-Speed Pick & Place Production Line Web 3D Digital Twin & SCADA" />
-  </a>
+  <img src="assets/hero-preview.png" width="94%" alt="2.5D Industrial Digital Twin & Live SCADA Telemetry Interface" />
   <br/>
-  <sub>▲ Featured Showcase: SMT High-Speed Pick & Place Production Line Web 3D Digital Twin & Industrial SCADA (Full source & guide in <a href="examples/smt-pick-and-place"><code>examples/smt-pick-and-place</code></a>)</sub>
+  <sub>▲ 2.5D Isometric Digital Twin & Real-Time PLC Telemetry SCADA (See more industry showcases in <a href="examples"><code>examples/</code></a>)</sub>
 </div>
 
 ---

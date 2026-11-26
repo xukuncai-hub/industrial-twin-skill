@@ -35,11 +35,9 @@
 > **不是“自己转圈的假动画”**——前端严格遵循工业 I/O 契约：PLC 输出 `1` 则动、`0` 则停；支持**网页/手机反向写入 PLC**，且 3D 物料触发虚拟光电后自动向 PLC 回写传感器信号。
 
 <div align="center">
-  <a href="examples/smt-pick-and-place">
-    <img src="examples/smt-pick-and-place/preview.png" width="92%" alt="SMT 高速贴片机生产线 Web 3D 数字孪生与工业上位机" />
-  </a>
+  <img src="assets/hero-preview.png" width="94%" alt="2.5D 工业数字孪生与实时数据上位机界面" />
   <br/>
-  <sub>▲ 典型落地案例：SMT 高速贴片生产线 Web 3D 数字孪生与工业上位机（完整源码与说明见 <a href="examples/smt-pick-and-place"><code>examples/smt-pick-and-place</code></a>）</sub>
+  <sub>▲ 2.5D 等轴测数字孪生与实时 PLC 数据上位机（更多行业落地示例见 <a href="examples"><code>examples/</code></a>）</sub>
 </div>
 
 ---
