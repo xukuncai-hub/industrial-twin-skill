@@ -44,23 +44,32 @@
 
 <table>
   <tr>
-    <td width="50%" align="center">
+    <td width="33%" align="center">
+      <a href="examples/plc-lamp-25d">
+        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="Start/Stop & Output Lamp 2.5D HMI" />
+      </a>
+      <br/>
+      <b><a href="examples/plc-lamp-25d">Start/Stop &amp; Lamp (2.5D Starter)</a></b>
+      <br/>
+      <sub>Interactive 2.5D · Atomic Bit Write · COM Scan</sub>
+    </td>
+    <td width="33%" align="center">
       <a href="examples/smart-factory-scada">
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="Smart Factory EV Drive Assembly 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smart-factory-scada">EV Drive Assembly Line (Multi-Theme &amp; Multi-Protocol SCADA)</a></b>
+      <b><a href="examples/smart-factory-scada">EV Drive Line (2.5D Multi-View)</a></b>
       <br/>
-      <sub>4 Industrial Themes · Device &amp; Tag Manager · 6-Station Twin · Live Trends</sub>
+      <sub>6-Station Twin · Device Manager · Live Trends</sub>
     </td>
-    <td width="50%" align="center">
+    <td width="33%" align="center">
       <a href="examples/smt-pick-and-place">
-        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT Pick & Place 3D Digital Twin" />
+        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT Pick & Place Process Mimic SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smt-pick-and-place">SMT Pick &amp; Place Line (Process Mimic &amp; Data SCADA)</a></b>
+      <b><a href="examples/smt-pick-and-place">SMT Line (Mimic &amp; Data)</a></b>
       <br/>
-      <sub>7-Station Mimic · Feeders &amp; 8-Zone Oven · Multi-Protocol Manager</sub>
+      <sub>7-Station Mimic · Feeders &amp; Oven · Multi-Proto</sub>
     </td>
   </tr>
 </table>

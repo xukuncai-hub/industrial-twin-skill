@@ -44,23 +44,32 @@
 
 <table>
   <tr>
-    <td width="50%" align="center">
+    <td width="33%" align="center">
+      <a href="examples/plc-lamp-25d">
+        <img src="examples/plc-lamp-25d/preview.png" width="100%" alt="启停控制与输出指示灯 2.5D 上位机" />
+      </a>
+      <br/>
+      <b><a href="examples/plc-lamp-25d">启停控制与输出小灯 (2.5D 入门闭环)</a></b>
+      <br/>
+      <sub>2.5D 交互按钮 · 原子单比特写入 · 串口识别</sub>
+    </td>
+    <td width="33%" align="center">
       <a href="examples/smart-factory-scada">
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="新能源电驱智能总装线 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smart-factory-scada">新能源电驱智能总装线 (2.5D 多主题多协议 SCADA)</a></b>
+      <b><a href="examples/smart-factory-scada">新能源电驱总装线 (2.5D 多视图)</a></b>
       <br/>
-      <sub>4 套工业主题切换 · 多协议设备/数据管理 · 6 工位闭环 · 实时波形</sub>
+      <sub>6 工位闭环 · 多协议设备管理 · 实时波形</sub>
     </td>
-    <td width="50%" align="center">
+    <td width="33%" align="center">
       <a href="examples/smt-pick-and-place">
-        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT 高速贴片机生产线 3D 数字孪生" />
+        <img src="examples/smt-pick-and-place/preview.png" width="100%" alt="SMT 高速贴片机生产线 工艺组态与数据 SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smt-pick-and-place">SMT 高速贴片机生产线 (工艺组态与数据 SCADA)</a></b>
+      <b><a href="examples/smt-pick-and-place">SMT 贴片产线 (组态与数据)</a></b>
       <br/>
-      <sub>7 工位工艺组态 · 飞达与 8 温区监控 · 多协议设备与点位管理</sub>
+      <sub>7 工位工艺组态 · 飞达与 8 温区 · 多协议</sub>
     </td>
   </tr>
 </table>

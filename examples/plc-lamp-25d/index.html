@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>启停控制与信号灯 · 2.5D 工业上位机</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">2.5D</div>
+        <h1>启停控制与输出指示灯 · 2.5D 上位机</h1>
+        <span class="conn-pill">
+          <span id="connDot" class="dot"></span>
+          <span id="connText">离线仿真模式（本地自锁响应）</span>
+        </span>
+      </div>
+      <div class="top-right">
+        <span id="scanChip" class="scan-chip">SCAN 100 ms (10 Hz)</span>
+        <div class="seg-switch" role="tablist" aria-label="运行模式">
+          <button id="modeOffline" class="seg-btn active" role="tab" aria-selected="true">离线仿真</button>
+          <button id="modeOnline" class="seg-btn" role="tab" aria-selected="false">连接设备</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="stage">
+      <canvas id="isoCanvas" aria-label="2.5D 启停控制台与输出指示灯交互画面"></canvas>
+
+      <!-- Floating Start/Stop Controls -->
+      <div class="ctrl-bar">
+        <button id="btnStart" class="btn btn-start" title="发送 DB1.DBX0.0 脉冲">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          启动 (DB1.DBX0.0)
+        </button>
+        <button id="btnStop" class="btn btn-stop" title="发送 DB1.DBX0.1 脉冲">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12"/></svg>
+          停止 (DB1.DBX0.1)
+        </button>
+      </div>
+
+      <!-- Floating DB1 Status HUD -->
+      <aside class="db-hud" aria-label="DB1 信号实时监控">
+        <div class="hud-head">
+          <strong>DB1 信号契约监控</strong>
+          <span>BYTE-ISOLATED</span>
+        </div>
+        <div class="tag-list">
+          <div class="tag-row">
+            <div class="tag-meta">
+              <span class="tag-name">启动按钮 cmd.start</span>
+              <span class="tag-addr">DB1.DBX0.0 · RW Pulse</span>
+            </div>
+            <span id="stStart" class="tag-state">0</span>
+          </div>
+          <div class="tag-row">
+            <div class="tag-meta">
+              <span class="tag-name">停止按钮 cmd.stop</span>
+              <span class="tag-addr">DB1.DBX0.1 · RW Pulse</span>
+            </div>
+            <span id="stStop" class="tag-state">0</span>
+          </div>
+          <div class="tag-row">
+            <div class="tag-meta">
+              <span class="tag-name">灯 out.lamp</span>
+              <span class="tag-addr">DB1.DBX0.2 · Read-Only</span>
+            </div>
+            <span id="stLamp" class="tag-state">OFF (0)</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Bottom Telemetry Dock -->
+      <footer class="dock">
+        <div class="dock-cell">
+          <div class="dock-k"><span>灯状态</span><span style="font-family:var(--mono);">DB1.DBX0.2</span></div>
+          <div class="dock-v"><span id="dockDot" class="dot" style="background:var(--dim);"></span><span id="dockLamp">熄灭 · 待机</span></div>
+        </div>
+        <div class="dock-cell">
+          <div class="dock-k"><span>DB1 字节实时值</span><span style="font-family:var(--mono);">DBB0</span></div>
+          <div class="dock-v" id="dockBytes">DBB0=0x00</div>
+        </div>
+        <div class="dock-cell">
+          <div class="dock-k"><span>累计动作次数</span><span style="font-family:var(--mono);">COUNT</span></div>
+          <div class="dock-v" id="dockOps">0 次</div>
+        </div>
+        <div class="dock-cell">
+          <div class="dock-k"><span>最近指令事件</span><span style="font-family:var(--mono);">LOG</span></div>
+          <div class="dock-v" id="dockLog" style="font-size:12px;font-weight:500;">系统就绪（点击 2.5D 按钮或左上角控制）</div>
+        </div>
+      </footer>
+    </main>
+  </div>
+
+  <!-- Multi-Protocol Connection Modal -->
+  <div id="connModal" class="modal-backdrop" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>一键连接 PLC / 工业设备</h3>
+      <div class="preset-grid">
+        <button type="button" class="btn" data-preset="s7">西门子 S7 (实体 / 仿真)</button>
+        <button type="button" class="btn" data-preset="mc">三菱 MC (5000)</button>
+        <button type="button" class="btn" data-preset="modbus-tcp">Modbus TCP (502)</button>
+        <button type="button" class="btn" data-preset="modbus-rtu">RS-485 串口 (COM3)</button>
+      </div>
+      <label class="field">通信协议驱动
+        <select id="connProtocol">
+          <option value="s7">Siemens S7comm (1200 / 1500 / 300 / PLCSIM)</option>
+          <option value="mc">三菱 MC (QnA 3E · 端口 5000)</option>
+          <option value="fins">欧姆龙 FINS/TCP (端口 9600)</option>
+          <option value="modbus-tcp">Modbus TCP (端口 502)</option>
+          <option value="modbus-rtu">Modbus RTU (RS-485)</option>
+          <option value="mqtt">MQTT 3.1.1 (IoT Broker · 1883)</option>
+          <option value="tcp-raw">Raw TCP/IP Socket</option>
+        </select>
+      </label>
+      <label class="field" id="ipFieldWrap">设备 IP 地址
+        <input id="connEndpoint" value="192.168.0.1" spellcheck="false" />
+      </label>
+      <div id="rtuFieldWrap" style="display:none;flex-direction:column;gap:8px;">
+        <label class="field">选择串口 (COM)
+          <div style="display:flex;gap:6px;">
+            <select id="rtuPortSelect" style="flex:1;"><option value="COM3">COM3 (默认)</option></select>
+            <button type="button" id="btnScanPorts" class="btn" style="padding:6px 10px;font-size:12px;">识别串口</button>
+          </div>
+        </label>
+        <label class="field">波特率
+          <select id="rtuBaudSelect">
+            <option value="9600">9600 bps</option>
+            <option value="19200">19200 bps</option>
+            <option value="38400">38400 bps</option>
+            <option value="115200" selected>115200 bps</option>
+          </select>
+        </label>
+      </div>
+      <label class="field">扫描周期
+        <select id="connPoll">
+          <option value="100" selected>100 ms (10 Hz · 推荐)</option>
+          <option value="50">50 ms (20 Hz · 高速)</option>
+        </select>
+      </label>
+      <div class="modal-actions">
+        <button id="btnCloseModal" class="btn">取消</button>
+        <button id="btnConfirmConn" class="btn btn-start">一键连接</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="tia-twin-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
