@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="swiss-light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,15 +10,22 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <span class="brand-mark"></span>
+        <span class="brand-mark" aria-hidden="true"></span>
         <div>
-          <div class="kicker">DIGITAL TWIN / SORTING LINE</div>
-          <h1 id="projectTitle">输送带分拣线</h1>
+          <h1 id="projectTitle">输送带分拣线 · 数字孪生上位机</h1>
         </div>
       </div>
-      <div class="mode-switch" role="tablist" aria-label="仿真模式">
-        <button id="modeOffline" class="mode-btn active" role="tab" aria-selected="true">离线仿真</button>
-        <button id="modeOnline" class="mode-btn" role="tab" aria-selected="false">连接 PLC</button>
+      <div class="topbar-actions">
+        <select id="themeSelect" class="theme-select" aria-label="界面主题">
+          <option value="swiss-light" selected>瑞士浅色</option>
+          <option value="isa-gray">ISA 中性灰</option>
+          <option value="warm-cad">精密暖灰</option>
+          <option value="dark-control">深色控制室</option>
+        </select>
+        <div class="mode-switch" role="tablist" aria-label="仿真模式">
+          <button id="modeOffline" class="mode-btn active" role="tab" aria-selected="true">离线仿真</button>
+          <button id="modeOnline" class="mode-btn" role="tab" aria-selected="false">连接设备</button>
+        </div>
       </div>
     </header>
 
@@ -59,8 +66,8 @@
               <span>现场传感器模拟 (外部 ➔ PLC)</span>
               <span id="pe1StateLabel" class="mono" style="color: var(--dim);">PE1: 0</span>
             </div>
-            <button id="btnTriggerPe1" class="btn wide" style="margin-top: 0; background: rgba(61,214,245,0.08); border-color: rgba(61,214,245,0.3); color: var(--cyan);" data-cmd="sensor.pe1" title="模拟现场工件遮挡光电开关，向 PLC 发送 DB1.DBX0.6 脉冲信号">
-              📡 触发 PE1 感应脉冲 (发给 PLC)
+            <button id="btnTriggerPe1" class="btn wide pe-btn" data-cmd="sensor.pe1" title="模拟现场工件遮挡光电开关，向设备发送 DB1.DBX0.6 脉冲信号">
+              触发 PE1 感应脉冲 (写入设备)
             </button>
           </div>
         </section>
@@ -77,23 +84,31 @@
           </div>
 
           <div id="onlinePane" class="hidden">
-            <div class="panel-head"><h2>连接 PLC</h2><span id="onlineState" class="mono">未连接</span></div>
-            <label class="field">PLC 地址
-              <input id="plcIp" spellcheck="false" placeholder="192.168.0.1">
+            <div class="panel-head"><h2>连接工业设备</h2><span id="onlineState" class="mono">未连接</span></div>
+            <label class="field">通信协议驱动
+              <select id="protoSelect">
+                <option value="s7">Siemens S7comm (1200 / 1500 / 300 / PLCSIM)</option>
+                <option value="modbus-tcp">Modbus TCP (以太网 502)</option>
+                <option value="modbus-rtu">Modbus RTU (RS-485 串口)</option>
+                <option value="tcp-raw">Raw TCP/IP Socket</option>
+              </select>
+            </label>
+            <label class="field">设备地址 / 端点
+              <input id="plcIp" spellcheck="false" placeholder="192.168.0.1 或 COM3">
             </label>
             <details class="advanced">
-              <summary>高级：Rack / Slot</summary>
+              <summary>高级参数：Rack / Slot / 站号</summary>
               <div class="field-row">
-                <label class="field">Rack
-                  <input id="plcRack" type="number" min="0" max="7" value="0">
+                <label class="field">Rack / Port
+                  <input id="plcRack" type="number" min="0" max="65535" value="0">
                 </label>
-                <label class="field">Slot
-                  <input id="plcSlot" type="number" min="0" max="31" value="1">
+                <label class="field">Slot / Unit ID
+                  <input id="plcSlot" type="number" min="0" max="255" value="1">
                 </label>
               </div>
             </details>
-            <button id="btnPlcConnect" class="btn primary wide">连接 PLCSIM Advanced</button>
-            <p id="onlineMsg" class="hint">输入 PLCSIM Advanced 虚拟 PLC 的 IP 地址。网关由启动器在后台运行。</p>
+            <button id="btnPlcConnect" class="btn primary wide">连接设备</button>
+            <p id="onlineMsg" class="hint">输入设备 IP 或串口参数，网关支持 S7 / Modbus / Raw TCP 多协议热切换。</p>
             <label class="auto-row" style="margin-top: 10px; margin-bottom: 4px;">
               <input id="autoSensorOnline" type="checkbox" checked>
               <span>物料路过 PE1 时自动发信号给 PLC</span>
@@ -114,5 +129,9 @@
   </div>
   <script src="tia-twin-client.js"></script>
   <script src="app.js"></script>
+  <script>
+    const ts = document.getElementById('themeSelect');
+    if (ts) ts.addEventListener('change', () => { document.documentElement.dataset.theme = ts.value; });
+  </script>
 </body>
 </html>

@@ -49,9 +49,9 @@
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="新能源电驱智能总装线 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smart-factory-scada">新能源电驱智能总装线 (2.5D 多视图 SCADA)</a></b>
+      <b><a href="examples/smart-factory-scada">新能源电驱智能总装线 (2.5D 多主题多协议 SCADA)</a></b>
       <br/>
-      <sub>6 工位闭环仿真 · 20 点位 DB1 监视表 · 实时波形 · 审计日志</sub>
+      <sub>4 套工业主题切换 · 多协议设备/数据管理 · 6 工位闭环 · 实时波形</sub>
     </td>
     <td width="50%" align="center">
       <a href="examples/smt-pick-and-place">

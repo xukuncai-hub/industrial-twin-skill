@@ -49,9 +49,9 @@
         <img src="examples/smart-factory-scada/preview.png" width="100%" alt="Smart Factory EV Drive Assembly 2.5D SCADA" />
       </a>
       <br/>
-      <b><a href="examples/smart-factory-scada">EV Drive Assembly Line (2.5D Multi-View SCADA)</a></b>
+      <b><a href="examples/smart-factory-scada">EV Drive Assembly Line (Multi-Theme &amp; Multi-Protocol SCADA)</a></b>
       <br/>
-      <sub>6-Station Closed-Loop · 20-Tag DB1 Monitor · Live Trends · Audit Log</sub>
+      <sub>4 Industrial Themes · Device &amp; Tag Manager · 6-Station Twin · Live Trends</sub>
     </td>
     <td width="50%" align="center">
       <a href="examples/smt-pick-and-place">

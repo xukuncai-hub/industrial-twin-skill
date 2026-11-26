@@ -298,6 +298,13 @@
   });
 
   // Multi-Protocol Modal
+  const themeSelect = document.getElementById('themeSelect');
+  if (themeSelect) {
+    themeSelect.addEventListener('change', () => {
+      document.documentElement.dataset.theme = themeSelect.value;
+    });
+  }
+  const isDarkTheme = () => document.documentElement.dataset.theme === 'dark-control';
   const modal = document.getElementById('plcModal');
   const protoSel = document.getElementById('connProtocol');
   protoSel.addEventListener('change', () => {
@@ -389,7 +396,8 @@
     const [sx, sy] = iso(wx, wy, wz, ox, oy, s);
     const tx = sx + dx;
     const ty = sy + dy;
-    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    const dark = isDarkTheme();
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.22)' : 'rgba(15,23,42,0.25)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(tx, ty); ctx.stroke();
     ctx.fillStyle = color;
@@ -404,18 +412,18 @@
     const bx = dx >= 0 ? tx : tx - bw;
     const by = ty - bh / 2;
 
-    ctx.fillStyle = 'rgba(15, 21, 31, 0.88)';
-    ctx.strokeStyle = 'rgba(255,255,255,0.13)';
+    ctx.fillStyle = dark ? 'rgba(15, 21, 31, 0.88)' : 'rgba(255, 255, 255, 0.94)';
+    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.13)' : 'rgba(15,23,42,0.14)';
     ctx.lineWidth = 1;
     ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, 5); ctx.fill(); ctx.stroke();
 
     ctx.fillStyle = color;
     ctx.beginPath(); ctx.arc(bx + 9, by + 12, 2.5, 0, Math.PI * 2); ctx.fill();
     ctx.textAlign = 'left';
-    ctx.fillStyle = '#f1f5f9';
+    ctx.fillStyle = dark ? '#f1f5f9' : '#0f172a';
     ctx.font = '600 11px "Fira Sans", "Segoe UI", sans-serif';
     ctx.fillText(title, bx + 16, by + 15);
-    ctx.fillStyle = '#8b98a9';
+    ctx.fillStyle = dark ? '#8b98a9' : '#475569';
     ctx.font = '400 10px "Fira Code", Consolas, monospace';
     ctx.fillText(sub, bx + 9, by + 28);
   }
@@ -485,7 +493,7 @@
     const s = Math.min(W, H) * 0.035;
 
     // Floor Grid
-    ctx.strokeStyle = 'rgba(255,255,255,0.032)';
+    ctx.strokeStyle = isDarkTheme() ? 'rgba(255,255,255,0.032)' : 'rgba(15,23,42,0.055)';
     ctx.lineWidth = 1;
     for (let gx = -14; gx <= 14; gx += 1.6) {
       const a = iso(gx, 0, -9, ox, oy, s), b = iso(gx, 0, 9, ox, oy, s);
