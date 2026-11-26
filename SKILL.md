@@ -61,7 +61,7 @@ python scripts/make_project.py --out ./my-line --mode blender   # Blender 工业
      - 包括：输送带电机接触器（`line.running`）、推料/阻挡气缸电磁阀（`out.cyl`）、运行/报警指示灯（`stack.green`, `stack.red`）、分拣计数与状态字（`box.count`）。
      - **网页在真实模式下严禁自行虚构控制逻辑**，网页动画（皮带转动、气缸推拉、灯亮灭）**必须且只能读取 PLC 输出状态来驱动**。PLC 输出 1 则动，输出 0 则停。
 5. **DB 必须非优化访问**，CPU 必须允许 PUT/GET；16 位量偶数字节对齐，32 位量 4 字节对齐。
-6. **页面只有两种模式**：`离线仿真`（本地 mock，可直接改数据）和 `连接 PLC`（用户只填 PLC IP/rack/slot）。默认离线；真实连接由用户点击触发。不要把网关 URL/Token、MOCK/Tag 工程面板暴露给操作者。未连接时禁用按钮并显示等待状态。
+6. **页面双模式与多协议连接**：`离线仿真`（本地 mock，可直接改数据）和 `连接设备`（支持切换 `S7comm`、`Modbus TCP`、`Modbus RTU`、`Raw TCP/IP` 并动态填写对应端点参数，默认离线，真实连接由用户点击触发）。不要把网关 URL/Token 暴露给操作者；未连接真实设备时禁用在线写入按钮并显示等待状态。
 7. **安全边界**：这是仿真/教学工具，不是安全回路。页面不得写 Q 输出区，只写 `TwinIO`；不得用于真实设备安全控制。
 8. **通信扫描周期可调（50ms / 100ms）**：页面与网关必须提供动态切换扫描周期选择器。默认提供 `50 ms (20 Hz · 高速响应)` 与 `100 ms (10 Hz · 工业标准推荐)`。页面顶部状态栏、连接弹窗必须提供选择下拉框，左下角 HUD 必须实时展示当前扫描周期节拍。禁止逐帧无节制刷写，网关必须具备时间差精确补偿。
 9. **严禁向物理输入区（%I）直写信号（PLC 硬件输入过程映像区 PII 循环刷新机制）**：
@@ -536,6 +536,12 @@ python tia_gateway.py --config gateway.config.json --wait-plc
          - 继承 `BaseProtocolBackend` 实现 `ensure_connected`、`read_all`、`write`、`status` 四大方法；
          - 在 `create_backend` 工厂函数中注册该协议，或存为 `custom_driver.py`。
          - 全程保持统一网关差量广播与 Web 端平滑驱动。
+19. **多协议设备接入与专用“设备与数据管理”界面铁律（严禁界面只支持 S7）**：
+    - **连接弹窗禁止写死 S7**：上位机连接入口（如“连接设备”）必须提供协议下拉选择（`s7` / `modbus-tcp` / `modbus-rtu` / `tcp-raw`），并按所选协议动态渲染对应参数输入框（IP/Rack/Slot、IP:Port/Unit ID、COM/波特率/站号、Host:Port/定界符），严禁只留西门子 IP/Rack/Slot。
+    - **专用“设备与数据管理”视图**：生成中大型或跨设备产线界面时，必须在导航栏中配备独立的 **设备与数据管理** 界面，支持：
+      1. **多协议设备通道管理**：查看、启用/停用、新增不同协议的工业设备（PLC、变频器、RS-485 仪表、视觉相机等）；
+      2. **跨设备数据点位映射管理**：按设备绑定与增删 `Tag ID`、协议地址、数据类型与读写权限（`R` / `W` / `RW`）；
+      3. **契约导出**：支持一键导出更新后的 `twin.manifest.json`。标准参考实现见 `examples/smart-factory-scada/`。
 
 ## 9. AI Agent 交付规范与最终回复模板 (Agent Delivery Response Standard)
 
@@ -584,7 +590,8 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - [ ] 真实 PLCSIM / 实体 PLC：PLC 状态、TIA 监视表、传感器回写、PLC 输出驱动网页、计数/故障。
 - [ ] 页面没有硬编码地址；没有在真实模式重复 PLC 逻辑；没有逐帧写 PLC；未暴露网关 URL/Token。
 - [ ] 严格遵守禁止向物理 `%I` 区直写规范；严格遵守 Windows 11 24H2 零命令行绿色交付规范。
-- [ ] 前端界面严格遵循 `references/ui-beautification-guide.md` 工业 HMI 美化规范（视口占主导、ISA-101 语义色、无套娃圆角卡片墙、等宽数字对齐）。
+- [ ] **多风格主题与 HMI 美化（禁止老是只用暗黑风）**：严格遵循 `references/ui-beautification-guide.md`，按现场光照与行业需求在 `swiss-light`（瑞士极简浅色）、`isa-gray`（ISA-101 标准中性灰）、`warm-cad`（精密暖灰工程台）与 `dark-control`（深色夜间）中合理选型，保证视口主导、无套娃圆角卡片墙、等宽数字对齐。
+- [ ] **全协议与设备/数据管理**：连接界面不得局限于 S7，支持多协议（`S7comm` / `Modbus TCP` / `Modbus RTU` / `Raw TCP`）动态参数切换；中大型项目配备独立的“设备接入与数据点位管理”视图并支持导出 `twin.manifest.json`（参考 `examples/smart-factory-scada`）。
 - [ ] 明确标注仿真用途，未宣称未经实测的 PLC 联调结果。
 
 ## 11. 边界
@@ -604,6 +611,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - `references/tia-setup-guide.md`：PLCSIM Advanced / TIA / DB / 排错。
 - `references/deployment.md`：双击启动、Windows 单文件 exe、Windows 服务三种部署方式。
 - `scripts/inspect_glb.py`：零依赖纯 Python 3D 模型节点树与契约自检工具，一键生成 bindings 配置。
+- `examples/smart-factory-scada/`：大型多视图 2.5D 数字孪生 SCADA 示例（含多协议设备与数据管理界面、实时波形与审计日志）。
 - `assets/template/`：2D 操作台示例（离线数据编辑 + PLC 连接）。
 - `assets/three-demo/`：3D 产线示例，使用同一 manifest/SDK/网关。
 - `assets/three-demo/vendor/GLTFLoader.js`：零依赖纯离线工业 GLTF/GLB 模型加载器。
