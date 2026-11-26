@@ -1472,6 +1472,9 @@ class Gateway:
                     await self._send(websocket, {"type": "ack", "id": mid, "ok": True, "pollHz": self.poll_hz, "intervalMs": int(1000 / self.poll_hz)})
                 else:
                     raise ProtocolError("BAD_VALUE", f"pollHz 必须在 1..50 之间，收到: {hz}")
+            elif mtype == "serial.ports":
+                ports = self._list_serial_ports()
+                await self._send(websocket, {"type": "ack", "id": mid, "ok": True, "ports": ports})
             else:
                 raise ProtocolError("BAD_MESSAGE", f"未知消息类型 {mtype!r}")
         except ProtocolError as exc:
@@ -1480,6 +1483,37 @@ class Gateway:
             LOG.warning("write failed: %s", exc)
             await self._send(websocket, {"type": "error", "id": mid, "code": "PLC_WRITE_FAILED",
                                          "message": str(exc)})
+
+    @staticmethod
+    def _list_serial_ports() -> list[dict[str, str]]:
+        ports: list[dict[str, str]] = []
+        try:
+            from serial.tools import list_ports
+            for p in list_ports.comports():
+                ports.append({"device": p.device, "description": p.description or p.device})
+            if ports:
+                return sorted(ports, key=lambda x: x["device"])
+        except Exception:
+            pass
+        if os.name == "nt":
+            try:
+                import winreg
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, r"HARDWARE\DEVICEMAP\SERIALCOMM")
+                i = 0
+                while True:
+                    try:
+                        name, val, _ = winreg.EnumValue(key, i)
+                        ports.append({"device": str(val), "description": f"{val} ({name.split(chr(92))[-1]})"})
+                        i += 1
+                    except OSError:
+                        break
+                winreg.CloseKey(key)
+            except Exception:
+                pass
+        else:
+            for dev in sorted(Path("/dev").glob("ttyUSB*")) + sorted(Path("/dev").glob("ttyACM*")):
+                ports.append({"device": str(dev), "description": str(dev)})
+        return sorted(ports, key=lambda x: x["device"])
 
     async def _configure_plc(self, websocket, mid, msg: dict):
         if self.backend.name == "mock":

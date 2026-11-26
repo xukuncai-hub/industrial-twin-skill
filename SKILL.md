@@ -603,7 +603,7 @@ python tia_gateway.py --config gateway.config.json --wait-plc
 - [ ] 页面没有硬编码地址；没有在真实模式重复 PLC 逻辑；没有逐帧写 PLC；未暴露网关 URL/Token。
 - [ ] 严格遵守禁止向物理 `%I` 区直写规范；严格遵守 Windows 11 24H2 零命令行绿色交付规范。
 - [ ] **严禁暗黑风与 HMI 美化（设计之初选定唯一协调浅色/中性灰风格，严禁暗黑风，禁止硬加换肤控件）**：严格遵循 `references/ui-beautification-guide.md`，**严禁生成暗黑风/黑底霓虹风格**！按现场光照与行业需求在 `swiss-light`（瑞士极简浅色）、`isa-gray`（ISA-101 标准中性灰）与 `warm-cad`（精密暖灰工程台）中选定一套，确保 2D/2.5D/3D 画布场景与外围 HUD 色调完全统一、视口主导、无套娃圆角卡片墙、等宽数字对齐。
-- [ ] **全协议与极简 1 键连接/部署**：连接界面不得局限于 S7，支持多协议（`S7comm` / `mc` / `fins` / `modbus-tcp` / `modbus-rtu` / `mqtt` / `tcp-raw`）动态参数切换，并**必须内置跨协议“一键预设”按钮（如 `西门子 S7 (实体 / 仿真)`、`三菱 MC (5000)`、`Modbus TCP (502)`、`RS-485 串口 (COM3)`，无需把 S7 实体与仿真拆成两个重复按钮）与 `localStorage` 记忆重连**；中大型项目配备独立的“设备接入与数据点位管理”视图并支持导出 `twin.manifest.json`（参考 `examples/smart-factory-scada` 与 `examples/smt-pick-and-place`）。
+- [ ] **全协议与极简 1 键连接/部署**：连接界面不得局限于 S7，支持多协议（`S7comm` / `mc` / `fins` / `modbus-tcp` / `modbus-rtu` / `mqtt` / `tcp-raw`）动态参数切换，并**必须内置跨协议“一键预设”按钮（如 `西门子 S7 (实体 / 仿真)`、`三菱 MC (5000)`、`Modbus TCP (502)`、`RS-485 串口 (COM3)`）与 `localStorage` 记忆重连**；当选择 `Modbus RTU (RS-485)` 时，**必须提供串口下拉选择与 `serial.ports` 自动识别按钮**（支持识别本机 COM 口及 USB 转 485 适配器名称）；中大型项目配备独立的“设备接入与数据点位管理”视图并支持导出 `twin.manifest.json`。
 - [ ] 明确标注仿真用途，未宣称未经实测的 PLC 联调结果。
 
 ## 11. 边界

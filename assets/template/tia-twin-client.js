@@ -299,6 +299,10 @@
       return this._request('plc.configure', config, 12000);
     }
 
+    listSerialPorts() {
+      return this._request('serial.ports', {}, 5000);
+    }
+
     setPollRate(hz) {
       const freq = Math.max(1, Math.min(50, parseInt(hz, 10) || 10));
       this.pollHz = freq;
