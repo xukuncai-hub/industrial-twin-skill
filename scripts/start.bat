@@ -35,7 +35,18 @@ if not defined PY (
 )
 
 :launch
-powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%PY%' -ArgumentList 'run_twin.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
-timeout /t 2 /nobreak >nul
-start "" "http://127.0.0.1:8000"
-exit /b 0
+powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%PY%' -ArgumentList 'run_twin.py --no-browser' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
+set /a _tries=0
+:wait_http
+netstat -ano | findstr /R ":8000 .*LISTENING" >nul 2>nul
+if not errorlevel 1 (
+  start "" "http://127.0.0.1:8000"
+  exit /b 0
+)
+set /a _tries+=1
+if %_tries% GEQ 20 (
+  start "" "http://127.0.0.1:8000"
+  exit /b 0
+)
+timeout /t 1 /nobreak >nul
+goto wait_http
