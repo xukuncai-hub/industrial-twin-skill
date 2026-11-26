@@ -1,65 +1,41 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title TIA Web Twin
 
-echo ==============================================
-echo   TIA Web Twin
-echo   Starting local services...
-echo   Close this window to stop.
-echo ==============================================
-echo.
+netstat -ano | findstr /R ":8765 .*LISTENING" >nul 2>nul
+if not errorlevel 1 (
+  start "" "http://127.0.0.1:8000"
+  exit /b 0
+)
+
+if not exist "%~dp0runtime\python.exe" (
+  if exist "%~dp0..\assets\runtime\portable-runtime.zip" (
+    echo Extracting portable runtime...
+    powershell -NoProfile -Command "Expand-Archive -Path '%~dp0..\assets\runtime\portable-runtime.zip' -DestinationPath '%~dp0runtime' -Force"
+  )
+)
 
 if exist "%~dp0runtime\python.exe" (
   set "PY=%~dp0runtime\python.exe"
-  goto run
+  goto launch
 )
 
 set "PY="
 for /f "delims=" %%I in ('where python 2^>nul') do (
   echo %%I | findstr /i /v "WindowsApps" >nul
-  if not errorlevel 1 (
-    if not defined PY set "PY=%%I"
-  )
+  if not errorlevel 1 if not defined PY set "PY=%%I"
 )
-
 if not defined PY (
-  where py >nul 2>nul
-  if not errorlevel 1 set "PY=py -3"
+  where py >nul 2>nul && set "PY=py -3"
 )
-
 if not defined PY (
-  where python >nul 2>nul
-  if not errorlevel 1 set "PY=python"
-)
-
-if not defined PY (
-  echo [ERROR] Python not found. Please install Python 3.10+.
+  echo [ERROR] Python not found. Please place portable runtime in .\runtime\
   pause
   exit /b 1
 )
 
-"%PY%" -c "import snap7" >nul 2>nul
-if errorlevel 1 goto install
-"%PY%" -c "import websockets" >nul 2>nul
-if errorlevel 1 goto install
-goto run
-
-:install
-echo Installing dependencies (snap7, websockets)...
-"%PY%" -m pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/ --trusted-host mirrors.aliyun.com
-if errorlevel 1 (
-  echo [ERROR] Failed to install dependencies.
-  pause
-  exit /b 1
-)
-
-:run
-echo Starting Digital Twin server and opening browser...
-"%PY%" run_twin.py
-echo.
-echo ==============================================
-echo   TIA Web Twin stopped.
-echo ==============================================
-pause
+:launch
+powershell -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%PY%' -ArgumentList 'run_twin.py' -WorkingDirectory '%~dp0' -WindowStyle Hidden"
+timeout /t 2 /nobreak >nul
+start "" "http://127.0.0.1:8000"
 exit /b 0
